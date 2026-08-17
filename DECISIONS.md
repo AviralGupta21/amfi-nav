@@ -117,14 +117,16 @@ a project built on facts and one built on someone's summary.
 ## D9 — Timeline: start 19–20 Aug, ~2–3 hrs/day, target early September
 **Decision:** Roughly 45 hours over ~16 days.
 
-**Indicative plan:**
-- Days 1–3: domain concepts; kick off AMFI NAV download in background (slow, paginated); raw load
-- Days 4–7: **the scheme dimension** — parsing AMFI's free-text scheme names into
-  fund house / scheme / plan / option. Names are inconsistent. **This is the real time sink**
-- Days 8–12: the checks — stale NAV, Direct-Regular spread inversions, impossible single-day
+**Indicative plan (revised 17 Aug 2026 — see D22):**
+- Days 1–3: domain concepts; NAV archive download and inspection; raw load
+- Days 4–5: **narrow scheme resolution** — codes for the treated and control schemes only,
+  not a general parser. ⚠️ *Originally budgeted days 4–7 for a full scheme dimension across all
+  38,107 codes. That was oversized — see D22*
+- Days 6–12: the checks — stale NAV, Direct-Regular spread inversions, impossible single-day
   moves, missing business days, scheme code discontinuities
 - Days 13–16: validate against 2–3 independently verifiable real events; README; defect counts
   by category
+- **Days freed from parsing go to the analysis**, not to extending the parser
 
 **Expect a "the data is weirder than I thought" wall around day 6.** Every AMFI project hits it.
 Budget for it rather than treating it as failure.
@@ -342,6 +344,84 @@ is meant to demonstrate competence against.
 ⚠️ **Verify granularity first** (NOTES.md Part 10): AMFI codes are normally per plan AND option,
 but the disclosure gives one code per scheme alongside whole-scheme AUM. If 100377 resolves to a
 single plan, a naive join would attribute total scheme AUM to one share class.
+
+---
+
+## D21 — Dual-source ingestion: clean archive for history, raw AMFI for the event window
+**Decision:** Use the `captn3m0` SQLite archive as the historical backbone, **and ingest raw
+AMFI text files directly for Feb–Jun 2024** — the analysis window.
+
+**Reasoning:** The archive is pre-cleaned. Verified 17 Aug 2026: `typeof(nav)` = `real` and
+`typeof(date)` = `text` for **all 36,765,864 rows**, one group each, zero exceptions. The
+documented AMFI defects describe what AMFI *publishes*, not what survives the maintainer's import.
+
+⚠️ **This corrects an earlier assumption** recorded in NOTES.md Part 8, which called those
+defects "a gift for the reconciliation layer." Wrong for this source.
+
+**Why dual-source rather than picking one:**
+- The archive gives 36.7M rows of clean backbone for long-run context, cheaply
+- Raw AMFI for the event window gives **authentic messy ingestion** where the analysis actually
+  lives — and it is what an AMC data team would genuinely be handling
+
+**Interview framing:** "I used a community archive for historical depth and went to the primary
+source for the analysis window, because the archive had been pre-cleaned and I wanted the
+pipeline to handle real input."
+
+### Consequent reframing of the reconciliation layer
+Type/format errors are trivial to catch — anyone can write a regex. **The defects worth building
+for are semantic**, and they require domain knowledge to even define:
+- Stale NAV — unchanged across consecutive business days
+- Missing trading days
+- **Direct plan priced below its Regular counterpart** (should be impossible — Direct has lower
+  expenses, so its NAV should grow faster)
+- Impossible single-day moves
+- Orphaned `scheme_code` values violating the declared foreign keys
+- Scheme code discontinuities at mergers
+
+**This is a stronger project than string validation**, and it is closer to what D2 described as
+the actual work of an AMC data team.
+
+---
+
+## D22 — Load everything, parse narrowly (scope correction, 17 Aug 2026)
+**Decision:** Ingest all 36.7M NAV rows and all 38,107 scheme codes into PostgreSQL. **Parse
+scheme names only for the schemes the analysis actually touches** — roughly 30–40 codes across
+~12 AMCs, plus the control group.
+
+**Reasoning — loading is not parsing, and they were conflated:**
+- **Loading** is one `\copy` and some patience. It requires understanding zero scheme names.
+  It's what makes this a data engineering project rather than a spreadsheet exercise, and it
+  costs almost nothing
+- **Parsing** names into a clean plan/option dimension is the expensive part. Doing it across
+  all 38,107 codes means handling dead FMPs, Institutional plans and Bonus options from 2009 —
+  **none of which touch a Feb–Mar 2024 event**
+
+⚠️ **This corrects D9**, which budgeted days 4–7 for a general scheme dimension. That estimate
+assumed a universal parser and was oversized.
+
+### Why today's parsing work still paid for itself
+The catalogue in NOTES.md Part 11 established that **codes are stable and names are not.**
+That finding is what makes the narrow scope viable: pulling the **February 2024** disclosure
+files from all 12 AMCs (the only month carrying the `AMFI Scheme Code` column) gives the codes
+for every treated scheme directly. **No name matching needed for the core join.**
+
+*→ The parsing problem can largely be routed around precisely because it was catalogued.*
+
+### Where name work is still genuinely required (short list)
+1. **Mar-2024-onward disclosure files dropped the scheme code column** → match on name, but only
+   for ~12 known funds. That's a lookup table, not a parser
+2. **Direct-vs-Regular checks** need the Direct code paired with the Regular code for the same
+   scheme. Only the name connects them. Again ~12 funds
+3. **Control group definition** — the one place broader name work may be needed, depending on
+   how the group is drawn
+
+⚠️ **Note the messy naming is INSIDE the event data, not off to the side of it.** Code 100377 —
+handed over by the Feb 2024 disclosure — is itself a legacy name: `Nippon India Growth Mid Cap
+Fund-Growth Plan-Growth Option`, no spaces around separators, no "Regular" token, two stacked
+plan layers. It cannot be filtered out as a 2009 fossil.
+
+**Document the filter as a deliberate scope decision** in the README rather than implying a
+universal parser was built.
 
 ---
 
