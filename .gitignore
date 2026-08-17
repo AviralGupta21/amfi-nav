@@ -1,0 +1,15 @@
+data/*
+!data/.gitkeep
+*.csv
+*.env
+.env
+.pgpass
+__pycache__/
+*.pyc
+*.db
+*.zst
+*.xls
+*.xlsx
+*.log
+*.bak
+.vscode/
