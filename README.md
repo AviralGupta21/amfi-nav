@@ -36,16 +36,23 @@ is often just distribution. Separating the two is the analytical core of this pr
 
 | Source | What it provides | Coverage |
 |---|---|---|
-| AMFI daily NAV history | Daily NAV per scheme | Full history, all schemes |
+| AMFI daily NAV history | Daily NAV per scheme | 36.7M rows, 38,107 scheme codes, Apr 2006 – present |
 | AMC stress test disclosures | Liquidation days, cash %, cap-segment split, investor concentration, beta, PE, turnover — **and monthly scheme-level AUM** | Feb 2024 onward, mid & small cap schemes only |
 | AMC addenda | Restriction type, effective date, reversal date | Manually compiled from primary filings |
 
 All sources are public regulatory disclosures. No paid or licensed data is used.
 
-**On data quality:** AMFI's published NAV data contains genuine defects — invalid ISINs
-(`NOTAPP`, malformed prefixes, case inconsistencies) and non-numeric NAV values (`#N/A`,
-`#DIV/0!`, `B.C.`). These are not synthetic. A reconciliation layer that catches and classifies
-them is a deliverable of this project, not a preliminary step.
+**On data sources and quality:** the historical NAV archive used here is a community mirror of
+AMFI's published data, and it has been cleaned on import — every NAV value is numerically typed
+and every date is ISO-formatted across all 36.7 million rows. AMFI's own published feed is not
+that tidy. The pipeline therefore reads the mirror for historical depth and goes directly to
+AMFI's source files for the analysis window, so that ingestion handles real input rather than
+pre-sanitised input.
+
+The defects that matter here are not type errors anyway. They are semantic: NAVs unchanged
+across consecutive trading days, missing business days, Direct plans priced below their Regular
+counterparts when lower expenses make that impossible, scheme codes that discontinue at mergers.
+Catching those requires knowing what the numbers mean, which is the point.
 
 ---
 
@@ -65,6 +72,13 @@ Nippon's two disclosed schemes show AUM changes far smaller than the index decli
 which is only possible if new money was arriving. If individual fund houses took inflows while
 the category bled, the headline figure conceals the more interesting story. *Not yet tested —
 requires the NAV-based flow decomposition.*
+
+**✅ Verified — a fund's identity is stable in its code and unstable in its name.**
+Nippon India's mid-cap fund appears in the regulatory disclosure as "Nippon India Growth Fund",
+in the NAV archive as "Nippon India Growth Mid Cap Fund", and in its pre-2019 form as "Reliance
+Growth Fund" — with nine distinct codes across the plan and option variants, written in three
+different separator conventions and two different casings. Matching these records by name fails
+silently; matching by code does not. The reconciliation layer is built on that distinction.
 
 ---
 
@@ -102,3 +116,9 @@ is published quarterly by AMFI, which is too coarse for a month-long event — t
 disclosures supply monthly AUM, but only for mid and small cap schemes and only from February 2024.
 Where a question cannot be answered within those limits, it is documented as a limitation rather
 than estimated around.
+
+The full archive is loaded — all 38,107 scheme codes — but scheme names are parsed into a clean
+plan and option hierarchy only for the schemes the analysis touches. The remainder are largely
+closed-ended fixed maturity plans that matured years before the event studied here, and building
+a universal parser for them would be effort spent on data the questions never reach. This is a
+scope decision, not an omission.

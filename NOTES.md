@@ -61,6 +61,85 @@ So: fund grew 20% in size, but only 10% was skill. Half the growth was distribut
 **Caveat to state aloud:** this assumes money arrived at end-of-period. In reality it
 trickles in at varying NAVs. Computing monthly instead of annually reduces this error.
 
+### THE FOUR-LEVEL HIERARCHY (what the scheme dimension is built on)
+
+One "fund" in conversation is actually four nested things in the data:
+
+**1. Fund house (= AMC = Asset Management Company)** — the company. Nippon India, SBI, Kotak.
+"Fund house" is the informal word; "AMC" is the formal one. One AMC runs many schemes.
+
+**2. Scheme** — the actual product with its own portfolio and its own manager.
+"Small Cap Fund", "Bluechip Fund", "Liquid Fund".
+
+**3. Plan — DIRECT or REGULAR.** Same portfolio, same manager, **two different NAVs.**
+- **Regular** pays a commission to whoever sold it to you, taken out of the expense ratio
+- **Direct** was bought straight from the AMC — no middleman, lower expenses
+- Identical holdings, but **Direct's NAV grows faster** because less is being skimmed
+
+*→ This is the single biggest reason two rows can look like the same fund with different NAVs
+and both be correct.*
+
+**4. Option — GROWTH, IDCW, or BONUS.** Again same portfolio, different NAV path.
+- **Growth** compounds everything back into the fund
+- **IDCW** (Income Distribution cum Capital Withdrawal) pays out periodically, so its
+  **NAV drops on payout dates**. Called **"Dividend"** before SEBI's 2021 rename — both words
+  appear in the data depending on vintage
+- **Bonus** — a third option type, observed in the archive
+- IDCW further splits into **Payout** and **Reinvestment** variants
+
+⚠️ **THE CLEAN FOUR-LEVEL MODEL IS AN OVERSIMPLIFICATION.** Verified against real data
+(17 Aug 2026) — see the parsing pathology catalogue in Part 11. What actually exists:
+
+| Level | Observed values |
+|---|---|
+| Plan (modern) | `Direct`, `Institutional`, **or nothing at all** |
+| Plan (legacy, pre-2013) | `Growth Plan`, `Dividend Plan` — sits *between* modern plan and option |
+| Option | `Growth`, `IDCW` / `Dividend`, `Bonus` |
+
+🔴 **REGULAR IS ENCODED AS ABSENCE.** The string "Regular" does not appear. A scheme is Regular
+because it is *not* Direct and *not* Institutional. **You cannot detect it with a keyword** —
+only by ruling everything else out.
+
+🔴 **Two plan layers stack.** `Direct Plan Growth Plan` means modern-plan=Direct AND
+legacy-plan=Growth. The word "Plan" appears twice meaning different things, and in
+`Growth Plan - Growth Option` the word "Growth" appears twice at two different levels.
+**Position disambiguates. Keywords cannot.**
+
+**So one scheme becomes many rows:**
+```
+SBI Small Cap Fund - Direct Plan  - Growth
+SBI Small Cap Fund - Direct Plan  - IDCW
+SBI Small Cap Fund - Regular Plan - Growth
+SBI Small Cap Fund - Regular Plan - IDCW
+```
+Same underlying portfolio. Different NAVs. All correct.
+**This is much of why the archive holds 38,107 distinct scheme codes** (measured — see Part 11).
+
+⚠️ **The hierarchy is real and structural. The NAME STRING is an unreliable narrator of it.**
+Naming was never standardised — each AMC named its schemes however it liked, over decades, and
+AMFI passes them through as-is. Splitting a name on its separator gives three pieces for one row,
+five for the next, two for something from 2009. Expect:
+- Plan sometimes stated, sometimes omitted entirely
+- "Direct Plan" vs just "Direct"
+- Separators varying — hyphen, en-dash, sometimes nothing
+- Option sub-variants ("IDCW Payout", "IDCW Reinvestment") splitting one field into two pieces
+- Unplanned tokens — "(erstwhile XYZ Fund)", "Segregated Portfolio 1", "Bonus Option"
+
+*→ Reconstructing a clean hierarchy from messy text IS the reconciliation work (D2).*
+
+### 🔴 DIRECT PLANS DID NOT EXIST BEFORE JANUARY 2013
+The archive starts **2006-04-01**. Direct plans were introduced in **January 2013**.
+
+So for roughly the first seven years of the data, **every scheme has only a Regular plan** —
+no Direct counterpart exists to compare against.
+
+**Consequence for the reconciliation layer:** any Direct-vs-Regular check will find nothing
+before 2013. Written naively it either returns zero rows and looks broken, or worse, silently
+supports a false conclusion about the pre-2013 period. **The check must be date-bounded, and the
+bound has a domain reason, not an arbitrary one.**
+
+*→ Exactly the class of semantic check D21 describes.*
+
 ### NAV per unit says NOTHING about whether a fund is good
 ₹15 NAV vs ₹150 NAV is an artifact of launch date and starting price. ₹10,000 buys 666 units
 of one or 66 of the other — identical exposure. Only forward *return* matters.
@@ -318,11 +397,17 @@ than a confident causal claim.
 | **Monthly scheme-level AUM** (mid/small cap only) | Column B of the stress test files | ✅ **Unexpected win — see Part 10** |
 | AMC restriction addenda | Each AMC's own "addenda"/"notices" page | ⚠️ To be built manually |
 
-### Known AMFI data defects (a gift for the reconciliation layer)
-- Invalid ISINs: `NOTAPP`, `NA`, `IINF` prefix instead of `INF`, lowercase ISINs
-- Invalid NAV values: `#N/A`, `#DIV/0!`, `N.A.`, `NA`, `B.C.`, `B. C.`
+### ⚠️ AMFI data defects — NOT PRESENT IN THIS ARCHIVE (verified 17 Aug 2026)
+AMFI's **published** feed contains genuine defects — invalid ISINs (`NOTAPP`, `NA`, `IINF`
+prefix, lowercase) and non-numeric NAV values (`#N/A`, `#DIV/0!`, `N.A.`, `B.C.`).
 
-**These are real, documented defects — not synthetic ones. Use them.**
+**But the `captn3m0` SQLite archive has been cleaned.** Verified: `typeof(nav)` returns `real`
+for all 36,765,864 rows, `typeof(date)` returns `text` for all 36,765,864 rows. **One group each,
+zero exceptions.** Real regulatory data is never this uniform — the maintainer stripped bad
+values on import.
+
+*→ An earlier version of this file called these defects "a gift for the reconciliation layer."
+That was wrong for this source. See D21 for the resulting design change.*
 
 ### Constraint that shapes the whole project — NOW PARTLY LIFTED
 AMFI gives daily NAV free and complete. It does **NOT** give daily scheme-level AUM — only
@@ -376,6 +461,19 @@ can be found.
 - [ ] Do the other 11 AMCs archive back to Feb 2024? (Assume nothing about URL conventions —
       Nippon used three in four months)
 - [ ] Exact wording of the AMFI 28 Feb letter on cadence — was "every 15 days" accurate reporting?
+- [x] 🔴 **What is stored in `nav.date`?** → **TEXT**, uniformly, all 36.7M rows.
+      ⚠️ Format still unchecked — see below
+- [x] 🔴 **What FORMAT are the date strings in?** → **`YYYY-MM-DD`** (ISO 8601).
+      Postgres parses natively. No load specification needed
+- [x] 🔴 **Do the documented AMFI defects survive in this archive?** → **NO.** `typeof(nav)`
+      is `real` for all rows. Archive is pre-cleaned. **Design changed — see D21**
+- [ ] What do the integer values in `securities.type` mean? Undocumented
+- [x] **Are the foreign keys enforced / any orphaned `scheme_code` values?** → **0 orphaned NAV
+      rows; 606 schemes with no NAV.** Containment confirmed both ways (Part 11)
+- [ ] What are the 606 schemes with no NAV rows? Never-launched NFOs, withdrawn schemes, or
+      something else? Sample the names
+- [ ] How many of the 38,107 codes are dead FMPs? Determines whether the scheme dimension needs
+      a relevance filter before parsing
 - [ ] Exact effective dates for each AMC restriction — from AMC addenda, not news articles
 
 
@@ -563,3 +661,331 @@ another" question this event was chosen for (D5).
 - Turnover jumped on both (0.18 → 0.22 and 0.15 → 0.22) — managers traded materially more
   during the stress
 - Top-10 investor concentration fell on both — consistent with larger investors exiting
+
+---
+
+## PART 11 — THE NAV ARCHIVE SCHEMA (inspected 17 Aug 2026)
+
+Source: `captn3m0/historical-mf-data`, release artifact `funds.db.zst` → SQLite.
+
+### Three tables, normalised
+
+```sql
+CREATE TABLE nav (
+    scheme_code INTEGER,
+    date,                      -- ⚠️ NO DECLARED TYPE
+    nav FLOAT,
+    FOREIGN KEY (scheme_code) REFERENCES schemes(scheme_code)
+);
+
+CREATE TABLE schemes (
+    scheme_code INTEGER PRIMARY_KEY,
+    scheme_name TEXT
+);
+
+CREATE TABLE securities (
+    isin TEXT UNIQUE,
+    type INTEGER,
+    scheme_code INTEGER,
+    FOREIGN KEY (scheme_code) REFERENCES schemes(scheme_code)
+);
+```
+
+Plus one view: `nav_by_isin` — joins `nav` to `securities` on `scheme_code`.
+**Indices (0)** — none ship with the file; they must be created after decompressing.
+
+### ✅ Finding 1 RESOLVED — `date` is uniformly TEXT, format ISO 8601
+`typeof(date)` → `text` for all **36,765,864** rows. One group, zero exceptions.
+
+**Format confirmed: `YYYY-MM-DD`** (e.g. `2013-05-03`). ISO 8601 — **PostgreSQL parses this
+natively**, no explicit format specification needed, no day/month ambiguity. Best case outcome.
+
+⚠️ Sampled via `LIMIT 10` with no `ORDER BY`, which returns physical storage order, not
+chronological order. **The values seen do not indicate the start of the date range** —
+run `MIN(date)` / `MAX(date)` for that.
+
+### ✅ Finding 2 RESOLVED — the archive is CLEAN, defects removed
+`typeof(nav)` → `real` for all **36,765,864** rows. One group, zero exceptions.
+
+**The documented AMFI defects are absent from this archive.** They describe what AMFI *publishes*,
+not what survives the maintainer's import. See Part 8 and D21.
+
+### Baseline figures (measured 17 Aug 2026)
+| Metric | Value |
+|---|---|
+| Total NAV rows | **36,765,864** |
+| Date range | **2006-04-01 → 2026-08-16** (~20.4 years, current to yesterday) |
+| `typeof(date)` distinct values | 1 (`text`, ISO 8601) |
+| `typeof(nav)` distinct values | 1 (`real`) |
+
+### ⏱️ INDEX IMPACT — measured before and after (17 Aug 2026)
+
+**Index build cost (run individually):**
+| Index | Build time |
+|---|---|
+| `idx_nav_date_scheme` on `nav(date, scheme_code)` | 29,173 ms |
+| `idx_nav_scheme_code` on `nav(scheme_code)` | 25,774 ms |
+| `idx_securities_scheme_code` | 42 ms |
+| `idx_securities_isin` | 31 ms |
+| **Total** | **~55 seconds** |
+
+**Query performance:**
+| Query | Before | After | Speedup |
+|---|---|---|---|
+| `schemes LEFT JOIN nav` (606 rows) | 453,207 ms | 2,545 ms | **178×** |
+| `COUNT(*) WHERE scheme_code = 100377` | 4,181 ms | 24 ms | **174×** |
+| `ORDER BY date DESC LIMIT 10` | 5,434 ms | 13 ms | **418×** |
+| `COUNT(DISTINCT scheme_code)` from `nav` | 8,978 ms | 1,509 ms | **6×** |
+| `typeof(date)` grouped, full table | 19,559 ms | — | not re-run |
+| `typeof(nav)` grouped, full table | 16,449 ms | — | not re-run |
+
+**Economics: 55 seconds to build all four. The first query alone saved 450 seconds.**
+Paid for itself on first use.
+
+### 🔑 WHY ONE QUERY ONLY GOT 6× — the rule that generalises
+Three queries improved 100–400×. One improved 6×. The difference is **selectivity**.
+
+- **Selective queries narrow** — find one scheme, find the top ten dates, match rows one at a
+  time. An index turns each into a jump straight to the answer, skipping nearly everything
+- **`COUNT(DISTINCT scheme_code)` does not narrow.** It must visit every scheme code that exists.
+  The index still helps — scanning a structure containing only `scheme_code` beats scanning full
+  rows with dates and NAVs attached — but all 36.7M entries are still touched
+
+**Rule: indexes are transformative for selective queries and merely helpful for full aggregations.**
+
+*→ This applies directly in PostgreSQL and explains why one query is fast while a similar-looking
+one is not.*
+
+### 🔎 EXPLAIN QUERY PLAN — verified (17 Aug 2026)
+
+| Query | Plan | Speedup |
+|---|---|---|
+| `COUNT(*) WHERE scheme_code = 100377` | **SEARCH** nav USING COVERING INDEX | 174× |
+| `schemes LEFT JOIN nav` | SCAN s + **SEARCH** n USING COVERING INDEX | 178× |
+| `ORDER BY date DESC LIMIT 10` | **SCAN** nav USING COVERING INDEX | 418× |
+| `COUNT(DISTINCT scheme_code)` | **SCAN** nav USING COVERING INDEX | 6× |
+
+**No `USE TEMP B-TREE FOR ORDER BY` anywhere** — the composite index serves the sort directly.
+
+### Reading the plan output correctly
+| Output | Meaning |
+|---|---|
+| `SCAN <table>` alone | No index. Full table read. **Bad** |
+| `SCAN <table> USING INDEX` | Index read start-to-finish in order. Often optimal |
+| `SEARCH <table> USING INDEX` | Jumping straight to matching rows. Best case |
+| `USING COVERING INDEX` | Index holds every column the query needs — **the table is never opened** |
+| `USE TEMP B-TREE FOR ORDER BY` | Sort could not use an index; done in memory. **Warning sign** |
+
+*The word that matters is `INDEX`, not `SCAN` vs `SEARCH`.*
+
+### 🔑 REFINED RULE — `SCAN` does not mean "reads everything"
+Both bottom queries are `SCAN`, yet one got **418×** and the other **6×**. The difference is
+the `LIMIT`.
+
+- Query 3 scans the index in date order and **stops after ten entries**
+- Query 4 has no stopping condition, so it walks all 36.7M
+
+**`SCAN` means "reads in order." Whether that is cheap depends on whether something lets it
+stop early.** More precise than the earlier selectivity framing.
+
+### 🔑 COVERING INDEXES — the `SELECT` list changes everything
+All four plans say **COVERING**, because the queries only ask for `scheme_code`, `date`, or a
+count — all of which live inside the index. **The table is never opened.**
+
+Had `nav` (the value column) been selected, query 4 would have required a lookup back into the
+table for every row and would have been dramatically slower.
+
+*→ Applies directly in PostgreSQL: same index, same filter, wildly different performance
+depending on which columns are selected. This is what index-only scans are.*
+
+⚠️ The `detail` column truncates with "…" in DB Browser. **Widen it** to see *which* index was
+chosen — for the `scheme_code` queries either `nav` index could theoretically serve, and knowing
+which the planner picked is the point of running this.
+
+### 🔬 PARSING PATHOLOGY CATALOGUE — one fund, nine codes (17 Aug 2026)
+
+Query: `WHERE scheme_name LIKE 'Nippon India Growth%' OR LIKE '%Growth Mid Cap%' OR LIKE 'Reliance Growth%'`
+Result: **9 codes.** (Prediction was 15–20 — over-estimated.)
+
+| # | Code | Full scheme name |
+|---|---|---|
+| 1 | 118666 | `NIPPON INDIA GROWTH MID CAP FUND - DIRECT Plan - IDCW Option` |
+| 2 | 118665 | `Nippon India Growth Mid Cap Fund - Direct Plan Growth Plan - Bonus Option` |
+| 3 | 118668 | `Nippon India Growth Mid Cap Fund - Direct Plan Growth Plan - Growth Option` |
+| 4 | 100375 | `NIPPON INDIA GROWTH MID CAP FUND - IDCW Option` |
+| 5 | 106260 | `NIPPON INDIA GROWTH MID CAP FUND - INSTITUTIONAL Plan - IDCW Option` |
+| 6 | 100376 | `Nippon India Growth Mid Cap Fund-Growth Plan-Bonus Option` |
+| 7 | **100377** | `Nippon India Growth Mid Cap Fund-Growth Plan-Growth Option` |
+| 8 | 106258 | `Reliance Growth Fund Institutional Plan Growth Plan Growth Option` |
+| 9 | 106259 | `Reliance Growth Fund Institutional Plan Growth Plan Bonus Option` |
+
+### Every defect visible in these nine rows
+
+**1. Splitting on `" - "` yields: 3, 3, 3, 2, 3, 1, 1, 1, 1 pieces.**
+Not constant across nine rows of the *same fund*.
+
+**2. Three different separators**
+- Rows 1–5: `" - "` (spaces around hyphen)
+- Rows 6–7: `"-"` (no spaces)
+- Rows 8–9: **no separator at all** — pure whitespace. Nothing to split on
+
+**3. Inconsistent casing** — `NIPPON INDIA GROWTH MID CAP FUND` vs `Nippon India Growth Mid Cap
+Fund`, same fund, same table. Exact-match logic breaks; `GROUP BY scheme_name` splits one fund
+into two groups
+
+**4. Missing levels** — row 4 goes fund → option with no plan at all
+
+**5. 🔴 "Regular" never appears.** Only `Direct`, `Institutional`, or nothing.
+**Regular = absence.** Detected by exclusion, never by keyword
+
+**6. 🔴 Two plan layers stacked** — `Direct Plan Growth Plan`: modern plan (Direct) + legacy
+plan (Growth). "Plan" appears twice meaning different things
+
+**7. Repeated tokens at different levels** — `Growth Plan-Growth Option`. Position disambiguates;
+keywords cannot
+
+**8. Undocumented values** — `Bonus Option` (third option type), `Institutional Plan` (fourth
+plan class, discontinued ~2012, fits no level of the clean model)
+
+**9. Name is not stable over time.** The February disclosure says "Nippon India Growth Fund";
+the archive says "Nippon India Growth **Mid Cap** Fund". **A `LIKE '%Nippon India Growth Fund%'`
+search would have missed this scheme entirely.**
+*→ The code was stable. The name was not. This is the concrete justification for D20.*
+
+### 🔑 INFERENCE — the name encodes WHEN a scheme died
+Rows 8–9 still say **"Reliance"**, having survived the 2019 Nippon acquisition un-renamed, while
+everything else became "Nippon India".
+
+Those plans were almost certainly **discontinued before the acquisition**. Dead schemes don't get
+renamed — nobody updates a name no one will see.
+
+**So live schemes carry the current name; dead ones are frozen at whatever they were called when
+they stopped.** The name is a rough timestamp of death.
+
+### 🔑 100377 confirmed as the Regular / legacy plan
+Row 7: `Growth Plan-Growth Option` — **no Direct, no Institutional** → Regular by absence.
+Confirms the 5,010-row inference made before any name was read.
+
+**The Feb disclosure keys whole-scheme AUM (₹24,493.62 cr) to this single legacy Regular code.**
+Granularity trap now confirmed twice independently.
+
+### Code allocation is blocky — but NOT contiguous
+`100375/376/377`, `106258/259/260`, `118665/666/668` — codes issued in batches as plans launched.
+
+⚠️ **118667 does not exist at all** — verified, returns 0 rows from `schemes`. Not a scheme
+missing NAV data; the code was never assigned or was purged. Given 118665/666/668 are the three
+Direct-plan variants, 118667 was likely reserved for a fourth (probably an IDCW reinvestment)
+that was registered and never launched.
+
+🔑 **Rule: AMFI codes are NOT densely allocated.** Gaps exist inside otherwise contiguous blocks.
+**Never infer that a code range is complete, and never generate a code by arithmetic on a
+neighbouring one.** If you need to know a code exists, look it up.
+
+### Note on redundant indexes
+`securities.isin` is declared `TEXT UNIQUE`, and SQLite backs a UNIQUE constraint with an
+implicit index (`sqlite_autoindex_securities_1`). `idx_securities_isin` was created anyway
+**with no warning** — SQLite permits redundant indexes silently. Harmless at this size, but on
+a write-heavy table it means maintaining two structures for one purpose.
+
+### Scheme code counts (measured 17 Aug 2026)
+| Query | Result | Time |
+|---|---|---|
+| `COUNT(DISTINCT scheme_code)` from `schemes` | **38,107** | 45 ms |
+| `COUNT(DISTINCT scheme_code)` from `nav` | **37,501** | 8,978 ms |
+| Net difference | **606** | |
+
+⚠️ **Counts differing does NOT prove containment.** A net difference of 606 is consistent with
+"606 schemes have no NAV rows" *and* with "700 schemes have no NAV rows plus 94 orphaned NAV
+codes pointing at schemes that don't exist." Same net number, very different meaning.
+
+**The foreign key on `nav.scheme_code` is declared but SQLite does not enforce foreign keys
+unless explicitly enabled**, so orphaned NAV rows are genuinely possible.
+*→ Run the set comparison **both ways** (`NOT IN` or `LEFT JOIN ... WHERE NULL`). Each direction
+is a separate defect class for the reconciliation layer.*
+
+**Timing contrast is instructive:** 45 ms vs 8,978 ms for the same query shape. `schemes` is
+small and has a PRIMARY KEY index; `nav` has 36.7M rows and no index at all. That gap is the
+argument for indexing, visible before a single index has been created.
+
+### ⚠️ SCALE CORRECTION — 38,107 codes, not "~2,500 schemes"
+Earlier notes assumed ~2,500 schemes. **That is the count of LIVE schemes AMFI publishes today.**
+This archive holds 20 years including everything since discontinued.
+
+**Most likely explanation: Fixed Maturity Plans (FMPs).** Closed-ended debt schemes with a fixed
+maturity date, launched by AMCs in batches of dozens through the 2010s. Each gets a code, runs
+~3 years, matures, disappears. They accumulate into thousands of dead codes.
+
+**Consequence for the scheme dimension:** most of what the parser encounters will be dead FMPs
+with names like `XYZ Fixed Maturity Plan Series 24 Plan B - Regular - Growth`, **not** the equity
+funds this project is about.
+
+*→ **Resolved by D22:** load all 38,107 codes, but parse names only for the schemes the analysis
+touches (~30–40 codes). Loading is cheap and requires no name understanding; parsing is the
+expensive part and is scoped narrowly. Document the filter as a scope decision, not an oversight.*
+
+### ✅ RESOLVED — referential integrity checked BOTH ways (17 Aug 2026)
+
+| Direction | Query | Result | Time |
+|---|---|---|---|
+| Orphaned NAV rows | `nav LEFT JOIN schemes WHERE s.scheme_code IS NULL` | **0 rows** | 13,956 ms |
+| Schemes with no NAV | `schemes LEFT JOIN nav WHERE n.scheme_code IS NULL` | **606 rows** | **453,207 ms** |
+
+**Zero orphaned NAV rows** — every `scheme_code` in `nav` has a matching row in `schemes`,
+despite SQLite not enforcing the declared foreign key. The maintainer's import was disciplined.
+
+**Exactly 606 schemes with no NAV rows**, matching the net count difference precisely.
+**Containment is now empirically confirmed**, not assumed: 37,501 ⊂ 38,107.
+
+### ⏱️ THE 7.5-MINUTE LESSON
+The second query took **453,207 ms — over seven and a half minutes** — run before any indexes
+existed. A nested loop join across 36.7M unindexed rows costs exactly that: every row of `nav`
+scanned once per lookup, with no index to jump into.
+
+**After indexing the same query took 2,545 ms — a 178× improvement.**
+Building all four indexes took 55 seconds total. **This one query paid for them 8× over.**
+
+*→ This is D12 experienced rather than read.*
+
+### Open: what ARE the 606?
+Sample their names. Likely NFOs registered but never launched, or schemes withdrawn before
+their first NAV. Classifying them is better than merely counting them.
+
+### 🔑 INFERENCE — 100377 is almost certainly a REGULAR plan code
+`COUNT(*) WHERE scheme_code = 100377` → **5,010 rows.**
+
+2006-04-01 to 2026-08-16 ≈ 20.4 years × ~250 trading days ≈ **~5,100 expected rows** for full
+coverage. 5,010 is near-complete history from the start of the dataset.
+
+**Direct plans only began in January 2013**, so a Direct code cannot exceed ~3,400 rows.
+This code has NAV back to 2006 → **it is a legacy Regular plan.**
+
+**This confirms the join granularity trap.** The Feb disclosure supplies one code per scheme
+alongside **whole-scheme AUM** (₹24,493.62 cr) — and the code supplied is the old Regular plan.
+A naive join would attribute the entire scheme's AUM to a single share class.
+
+*→ Verify by reading the actual name, but note the row count alone revealed the structure.*
+
+### 🔴 Finding 3 — no AUM anywhere
+Confirms the design: AUM must come from the stress test files (Part 10). There is no AUM in the
+NAV archive at all, so the two sources are genuinely complementary rather than overlapping.
+
+### Structural notes
+- **`schemes` is one row per `scheme_code`**, holding the free-text `scheme_name`. This is the
+  table the scheme-dimension parsing work operates on — *not* `nav`
+- **`securities.isin` is UNIQUE**, and multiple ISINs map to one `scheme_code`. AMFI publishes
+  separate ISINs for payout and reinvestment variants, so `type` (INTEGER) most likely encodes
+  that distinction. ⚠️ Confirm what the integer values mean — it is undocumented in the schema
+- **Foreign keys are declared** on both `nav` and `securities` pointing at `schemes`. Worth
+  checking whether they are actually enforced — SQLite requires foreign key enforcement to be
+  switched on explicitly, and orphaned `scheme_code` values are a defect class in their own right
+
+### Index strategy (created manually after decompression)
+| Index | Purpose |
+|---|---|
+| `nav(date, scheme_code)` | Date-range queries — the event analysis |
+| `nav(scheme_code)` | Single-scheme history. **Needed separately** — the composite is sorted by date first, so it cannot serve a scheme_code-only lookup (leftmost prefix rule) |
+| `securities(scheme_code)` | Join performance |
+| `securities(isin)` | ISIN lookups |
+
+**Verify with `EXPLAIN QUERY PLAN`.** `SCAN nav` means the index is not being used;
+`SEARCH nav USING INDEX ...` means it is. The Postgres equivalent is `EXPLAIN ANALYZE`.
