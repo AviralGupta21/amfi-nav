@@ -425,6 +425,54 @@ universal parser was built.
 
 ---
 
+## D23 — Load a 2022–2024 slice first, then scale to full history
+**Decision:** Build and validate the pipeline end-to-end on a 2022–2024 slice (~5M rows) before
+loading all 36.7M.
+
+**Reasoning:** A slice gets a working pipeline inside one session rather than spending that
+session waiting on a load and then debugging a schema error at minute forty. The full load is
+unattended work that can run once everything is proven.
+
+**Why 2022, not 2023:**
+- The flow decomposition needs the month *before* February 2024 to compute the first month's return
+- A year of runway gives a pre-event baseline to compare the correction against
+
+**Constraints on how this is done:**
+- **Design the schema for the FULL dataset from day one.** The slice is a data volume decision,
+  not a schema decision. Building for 5M rows and later finding the types don't hold for 2006
+  data means rewriting
+- **Load `schemes` in full regardless of the slice** — only 38,107 rows, and filtering it creates
+  orphans that don't exist in the source
+- **The load must be re-runnable.** A script assuming an empty table will fail or duplicate on
+  the second run
+
+⚠️ **Slice trap:** a scheme that existed in 2022 and died in 2023 looks like a data gap inside
+the slice when it is actually a real scheme closure.
+
+**Accepted cost:** the load runs twice. Acceptable — the second run is unattended and everything
+is proven before committing to the wait.
+
+---
+
+## D24 — `(scheme_code, date)` is the natural composite primary key
+**Decision:** Declare `PRIMARY KEY (scheme_code, date)` on the `nav` table. No synthetic ID.
+
+**Reasoning:** Verified 17 Aug 2026 — `GROUP BY scheme_code, date HAVING COUNT(*) > 1` returns
+**0 rows across all 36,765,864 rows.** The pair is genuinely unique.
+
+**Two things this buys:**
+1. **The data enforces its own correctness.** Postgres rejects any load attempting a duplicate
+   NAV for a scheme on a date — precisely the failure mode a re-runnable load script risks. The
+   constraint does the work the script would otherwise have to
+2. **Idempotent loading.** With the composite key in place, `ON CONFLICT DO NOTHING` makes the
+   load safely re-runnable — run it twice, same result, no duplicates, no manual truncation.
+   **This directly satisfies the re-runnability constraint in D23**
+
+*Timing note: the duplicate check took 9,421 ms — a full aggregation over every row, so the
+~6× index pattern rather than the ~400× one. Consistent with the selectivity rule in NOTES Part 11.*
+
+---
+
 ## OPEN / PENDING DECISIONS
 
 - [x] **Is the historical stress test archive retrievable?** → **RESOLVED 17 Aug 2026: YES.**

@@ -887,6 +887,12 @@ implicit index (`sqlite_autoindex_securities_1`). `idx_securities_isin` was crea
 **with no warning** — SQLite permits redundant indexes silently. Harmless at this size, but on
 a write-heavy table it means maintaining two structures for one purpose.
 
+### ✅ NO DUPLICATE `(scheme_code, date)` PAIRS — verified 17 Aug 2026
+`GROUP BY scheme_code, date HAVING COUNT(*) > 1` → **0 rows** (9,421 ms).
+
+**`(scheme_code, date)` is a genuine natural composite primary key** across all 36,765,864 rows.
+No synthetic ID needed. See D24 — this determines both the Postgres schema and the load strategy.
+
 ### Scheme code counts (measured 17 Aug 2026)
 | Query | Result | Time |
 |---|---|---|
