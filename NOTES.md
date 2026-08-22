@@ -2,7 +2,95 @@
 
 **Project:** Small-cap stress testing & AMC inflow restrictions (Feb–Mar 2024)
 **Purpose:** Revision file. Everything here should be explainable out loud without notes.
-**Last updated:** 17 August 2026
+**Last updated:** 22 August 2026
+
+---
+
+## PART 0 — WHAT THIS PROJECT IS ACTUALLY ASKING
+
+*Written 22 Aug 2026. Everything else in this file exists to serve what's on this page.*
+
+### The objective, in one paragraph
+In February 2024 AMFI told fund houses to moderate inflows into small and mid-cap funds. Some
+restricted, some didn't. A month later small-caps fell ~13%. **This project asks whether those
+restriction decisions actually mattered** — whether they changed anything at all, whether the
+funds that restricted came through the correction better, and whether pre-event portfolio
+characteristics explain the differences between them.
+
+### 🔑 THE MECHANISM — why would a restriction matter at all?
+
+**The analogy.** You run a shop that buys second-hand cars and sells shares in the collection.
+Cars are absurdly expensive right now — one worth ₹5 lakh two years ago sells for ₹12 lakh. You
+think it's madness. **But money keeps arriving**, ₹100 crore a month, from people who saw how
+well the collection did.
+
+That money is a problem, not a gift. Two options, both bad:
+1. **Buy cars at ₹12 lakh** you think are worth ₹5 lakh. When prices correct, those crash hardest —
+   and the loss hits *everyone*, because everyone owns a slice of the same collection. Five-year
+   investors get dragged down by purchases they never asked for
+2. **Leave it in the safe.** Nothing lost, nothing earned — and that idle cash is part of the
+   collection everyone owns, so it drags down everybody's returns while prices keep climbing
+
+**No good third option.**
+
+**The escape:** put a sign on the door — *not accepting new investors*. No new money means no
+forced choice. You just manage what you already have.
+
+**That is exactly what those AMCs did in Feb 2024.** They did not stop people *leaving* —
+redemptions stayed open. They stopped people **coming in**.
+
+### Why they did it
+Small-cap shares had gotten expensive the same way. Nippon's small-cap fund showed a trailing
+P/E of **41.91** in the Feb 2024 file — investors paying ₹41.91 for every ₹1 of annual profit.
+Historically that figure sits nearer 16–20. Meanwhile retail money poured in *because* prices
+had been rising. The managers were staring at the trap.
+
+### 🔑 THE CENTRAL HYPOTHESIS
+**Funds that shut the door should have come through the correction in better shape than funds
+that stayed open** — because the open-door funds spent February and early March buying expensive
+shares with money they didn't want, right before prices fell. The closed-door funds didn't.
+
+**Everything else in the project exists to test this.**
+
+### The four questions, in dependency order
+**Q1 — Did the restrictions actually reduce inflows?**
+🔴 **This is the first-stage test and it gates everything else.** If restricted funds took in as
+much money as unrestricted ones, the treatment did nothing and Q2–Q4 are meaningless.
+**This is what the flow decomposition is for.** Run it first.
+
+**Q2 — Did restricted funds fall less in March?** NAV drawdown, treated vs control.
+
+**Q3 — Did they recover differently?** March through ~September 2024. Open-door funds bought at
+the top, so their recovery may look different.
+
+**Q4 — What explains differences *within* each group?** A fund already holding lots of cash
+didn't need to buy anything either — it had its own escape route. A fund needing 29 days to
+liquidate half its portfolio was in more danger than one needing 6.
+
+### The variables and why each exists
+| Role | Variable | Source | Why it's here |
+|---|---|---|---|
+| **Treatment** | Restricted / not, and type | AMC addenda | The thing being tested |
+| **First stage** | Monthly net flow | Monthly AUM + NAV return | Q1 — did the sign on the door work? |
+| **Outcome** | Peak-to-trough drawdown Feb–Mar | NAV | Q2 |
+| **Outcome** | Recovery speed | NAV | Q3 |
+| **Explanatory** | Cash % | Feb 2024 stress test | Own escape route — didn't need to buy |
+| **Explanatory** | Days to liquidate 25/50% | Feb 2024 stress test | Trapped-ness |
+| **Explanatory** | Top-10 investor % | Feb 2024 stress test | Stampede risk |
+| **Explanatory** | Trailing P/E | Feb 2024 stress test | How overpriced going in |
+| **Explanatory** | Small-cap %, AUM | Feb 2024 stress test | Exposure and size |
+
+### 📌 PRE-REGISTERED EXPECTATIONS (written 22 Aug 2026, before running anything)
+*Recorded so results cannot be rationalised after the fact.*
+
+1. Restricted funds took **materially less** money in March
+2. Drawdown differences between treated and control will be **SMALL** — all small-cap funds hold
+   similar stocks and fell together
+3. **Pre-event cash will explain more variation than the restriction itself**
+4. Dispersion between fund houses will be **larger** than the ₹94 cr category headline suggests
+
+⚠️ **If the drawdown difference turns out large, be suspicious** — it likely means the control
+group is contaminated.
 
 ---
 
@@ -450,8 +538,9 @@ can be found.
 - [x] 🔴 **Does the 29-Feb-2024 file contain real data or a blank template?** → **REAL DATA.**
       Clean pre-event baseline confirmed. Also carries AMFI Scheme Code and an explicit
       portfolio date, both absent from later files
-- [ ] 🔴 **PRIORITY: what does AMFI code 100377 resolve to in the NAV data** — a single
-      plan/option, or the whole scheme? Determines whether the join is valid (Part 10)
+- [x] 🔴 **What does AMFI code 100377 resolve to?** → `Nippon India Growth Mid Cap Fund-Growth
+      Plan-Growth Option` — a single legacy **Regular** plan, while the disclosure's AUM covers the
+      whole scheme. **Granularity trap confirmed** (Part 11)
 - [ ] 🔴 **Run the March 2024 flow decomposition on 100377 and 113177.** Did Nippon take
       inflows during the crash while the category saw net outflows? (Finding 2, Part 10)
 - [ ] Confirm the volume-collapse explanation for rising liquidation days — is NSE/BSE

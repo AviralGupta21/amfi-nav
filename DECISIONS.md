@@ -2,7 +2,7 @@
 
 **Project:** AMFI mutual fund data pipeline + Feb–Mar 2024 small-cap event analysis
 **Purpose:** Every decision with its *reasoning*. In an interview, the reasoning is the answer.
-**Last updated:** 17 August 2026
+**Last updated:** 22 August 2026
 
 ---
 
@@ -426,8 +426,8 @@ universal parser was built.
 ---
 
 ## D23 — Load a 2022–2024 slice first, then scale to full history
-**Decision:** Build and validate the pipeline end-to-end on a 2022–2024 slice (~5M rows) before
-loading all 36.7M.
+**Decision:** Build and validate the pipeline end-to-end on a **Jan 2022 → present** slice
+(~6M rows) before loading all 36.7M. *(Range corrected by D26 — originally written as 2022–2024.)*
 
 **Reasoning:** A slice gets a working pipeline inside one session rather than spending that
 session waiting on a load and then debugging a schema error at minute forty. The full load is
@@ -435,7 +435,8 @@ unattended work that can run once everything is proven.
 
 **Why 2022, not 2023:**
 - The flow decomposition needs the month *before* February 2024 to compute the first month's return
-- A year of runway gives a pre-event baseline to compare the correction against
+- Two years of runway lets you show treated and control moved in parallel *before* the event —
+  one year is too thin for that (see D26)
 
 **Constraints on how this is done:**
 - **Design the schema for the FULL dataset from day one.** The slice is a data volume decision,
@@ -473,6 +474,41 @@ is proven before committing to the wait.
 
 ---
 
+## D25 — 🔴 SAMPLE SELECTION CORRECTED: all small-cap AMCs, not the 12 largest
+**Decision:** The universe is **every AMC running a small-cap fund** (~25–30), not the 12 largest
+by AUM.
+
+**Reasoning — the earlier rule was methodologically broken.** Previous sessions repeatedly
+referred to "the top ~12 small-cap schemes by AUM." **The largest funds are precisely the ones
+that restricted.** Selecting the sample on size therefore loads the treated group and leaves
+almost no control group — you cannot choose a sample by a variable correlated with treatment.
+
+**Correct construction:**
+- **Universe:** all AMCs with a small-cap fund
+- **Treated:** whoever restricted (any of: lumpsum suspension, lumpsum cap, SIP cap, exit load change)
+- **Control:** whoever didn't
+
+⚠️ **Fix this before building the AMC addenda table** — the table defines the sample, so the
+error would be baked in.
+
+**Cost:** the addenda table roughly doubles in size. Accepted — without a control group there is
+no difference-in-differences and therefore no finding (D7).
+
+---
+
+## D26 — Slice range corrected to Jan 2022 → present
+**Decision:** The initial load slice runs **January 2022 to the present**, not 2022–2024.
+
+**Reasoning:**
+- **Why 2022 and not 2023:** difference-in-differences needs a pre-period long enough to show the
+  two groups were moving in parallel *before* the event. One year is thin; two is defensible
+- **Why include 2025–2026:** ⚠️ *An earlier version said "2022–2024" without justification.* The
+  recovery and whether effects persisted are part of the story, and it is only ~1M extra rows
+
+*Supersedes the range stated in D23. The slice-first strategy itself is unchanged.*
+
+---
+
 ## OPEN / PENDING DECISIONS
 
 - [x] **Is the historical stress test archive retrievable?** → **RESOLVED 17 Aug 2026: YES.**
@@ -486,16 +522,16 @@ is proven before committing to the wait.
 
 ---
 
-## PRE-START CHECKLIST (before 19 Aug)
+## PRE-START CHECKLIST — ✅ COMPLETE (17 Aug 2026)
 
-- [ ] Clear disk space
-- [ ] Install native Windows PostgreSQL + pgAdmin
-- [ ] Confirm connection via `psql`, create an empty database, stop there
-- [ ] Poke at the AMFI NAV endpoint just to see the format — don't build anything
-- [ ] Run the Nippon 15-March-2024 stress test retrieval test
-- [ ] `git init` the project folder and **write `.gitignore` before the first commit**
+- [x] Clear disk space
+- [x] Install native Windows PostgreSQL + pgAdmin
+- [x] Confirm connection via `psql`, create an empty database
+- [x] Poke at the AMFI NAV endpoint just to see the format
+- [x] Run the Nippon 15-March-2024 stress test retrieval test — **succeeded, archive back to Feb 2024**
+- [x] `git init` the project folder and **write `.gitignore` before the first commit**
       (a raw AMFI dump committed once stays in git history even after deletion)
-- [ ] Create the empty GitHub repo and add the remote
+- [x] Create the empty GitHub repo and add the remote — pushed 17 Aug 2026
 - [ ] **Do NOT** install Postgres and start following SQL tutorials in it to "get ready" —
       the ongoing SQL course is enough. Arriving with the event definition nailed down is
       worth far more than practising joins on sample data.
