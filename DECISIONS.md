@@ -2,7 +2,7 @@
 
 **Project:** AMFI mutual fund data pipeline + Feb–Mar 2024 small-cap event analysis
 **Purpose:** Every decision with its *reasoning*. In an interview, the reasoning is the answer.
-**Last updated:** 22 August 2026
+**Last updated:** 24 August 2026
 
 ---
 
@@ -509,13 +509,214 @@ no difference-in-differences and therefore no finding (D7).
 
 ---
 
+## D27 — PostgreSQL schema: types and constraints (22 Aug 2026)
+**Decision:** Schema built across numbered files in `sql/schema/`, run in dependency order.
+
+### Namespaces
+`staging` (raw text landing) and `core` (typed, constrained). Not `analysis` — views inside
+`core` cover that without extra ceremony. `search_path` set on the database to `core, public`,
+so `staging` must always be written explicitly. **Reading from the landing zone by accident
+becomes impossible.**
+
+### Type decisions
+| Column | Type | Reasoning |
+|---|---|---|
+| `nav_date` | `date` | 4 bytes vs ~11 for text, sorts correctly, supports interval arithmetic for the month-offset calculations the flow decomposition needs. Source is ISO 8601 so Postgres parses natively |
+| `nav_value` | `double precision` | Values are used for **ratios** (returns, drawdowns), not summed as ledger balances. Float error at ~1 part in 10^16 is irrelevant against a 13% drawdown. `numeric` would cost speed and space across 36.7M rows for no analytical gain |
+| `scheme_name` | `text` | `varchar(n)` performs identically in Postgres and only adds a way to fail. A length limit set too short aborts a load at row four million |
+
+### Constraint philosophy
+**A constraint is a stated belief the database checks for you.** Each was verified against the
+source before being declared:
+
+| Constraint | Verification |
+|---|---|
+| `nav` PK `(scheme_code, nav_date)` | 0 duplicate pairs across 36,765,864 rows |
+| `securities` PK on `isin` | 0 nulls, 0 blanks (checked `IS NULL` **and** `trim() = ''`) |
+| `nav_value NOT NULL` | 0 nulls |
+| `CHECK (nav_value > 0)` | 0 rows ≤ 0. A unit price of zero would mean holdings are worthless |
+| FK `nav`/`securities` → `schemes` | 0 orphans (verified 17 Aug) |
+
+### Other choices
+- **Column rename:** source `date`/`nav` → `nav_date`/`nav_value`, avoiding `nav.nav` in queries.
+  ⚠️ **Consequence: the `\copy` must name columns explicitly** rather than relying on positional order
+- **`loaded_at` deliberately omitted** from `schemes` — loaded once from a static archive, so every
+  row would carry the same timestamp. It belongs on the stress test table, where rows arrive
+  incrementally across months and AMCs
+- **`securities.type` stored with a `COMMENT ON COLUMN`** marking it undocumented. Dropping data
+  you don't understand is worse than storing it labelled honestly
+- **Foreign keys declared, not deferred.** Cost at 6M rows is small. If the full 36.7M load proves
+  slow, drop and re-add then — **measure before optimising**
+- **Files are idempotent** (`IF NOT EXISTS` on schemas), matching the load strategy
+
+### Index correction vs SQLite
+🔴 The SQLite composite was `(date, scheme_code)`; the Postgres PK is `(scheme_code, nav_date)`.
+**Not interchangeable.** By the leftmost prefix rule, the PK serves scheme-first lookups but
+**not** date-range scans.
+- `idx_nav_scheme_code` → **redundant**, PK's leading column covers it
+- **Index on `nav_date` → required**, and easy to miss
+- `securities(isin)` → created automatically by the PK
+- **Four indexes become two.**
+
+---
+
+## D28 — Outcome measure is peak-to-trough drawdown, with per-scheme troughs
+**Decision:** Measure the correction as peak-to-trough drawdown, finding each scheme's own peak
+and trough rather than applying fixed dates.
+
+**Reasoning — verified empirically 24 Aug 2026, not chosen stylistically:**
+
+| Scheme | Month-end return | Peak-to-trough |
+|---|---|---|
+| Nippon Small Cap | −0.92% | **−8.45%** |
+| Nippon Growth (mid cap) | +0.70% | **−6.74%** |
+
+**Nine-fold difference.** The segment crashed mid-March and rebounded before month-end, so
+comparing endpoints nets out a violent round trip. Month-end returns would have supported the
+conclusion that the correction barely touched these funds — the opposite of the truth.
+
+**Per-scheme troughs are required:** Small Cap bottomed 13 Mar, Growth Fund 20 Mar. **A week
+apart. There is no common bottom date.** Scaling to 24 fund houses means `PARTITION BY
+scheme_code`, not a fixed date filter.
+
+⚠️ **Framing consequence:** peaks are 7–8 Feb, before the 27–28 Feb AMFI letters. These funds had
+been falling for three weeks when the intervention landed. **The question is not "did the
+restriction prevent a fall" but "did it change what happened after the fall was underway."**
+State this plainly rather than letting the causal claim inflate.
+
+---
+
+## D29 — 🔴 OPEN: treatment definition complicated by prior restriction history
+**Problem, not yet a decision.** Nippon's addenda archive shows restrictions on its small cap fund
+in 2018, 2019, 2020, 2021, July 2023 and March 2024 — a six-year pattern of tightening and
+loosening.
+
+**So "restricted in 2024" does not cleanly separate treated from control.** For Nippon the March
+2024 action is continuation of standing policy; for an AMC restricting for the first time it is a
+response to the event. Treating both as the same treatment conflates two different behaviours.
+
+**Options to weigh once the addenda table exists:**
+1. Binary treated/control, ignoring history — simplest, and wrong for Nippon
+2. Add a `prior_restriction_history` flag and treat it as a covariate
+3. Restrict the treated group to **first-time** restrictors, moving habitual restrictors to a
+   third category
+4. Date the treatment from each AMC's *first ever* restriction rather than from March 2024
+
+**UPDATE 27 Aug 2026 — option 1 is eliminated, on documented grounds.**
+Nippon's fresh lumpsum subscriptions and switch-ins were suspended **continuously** from
+07-Jul-2023 through the pre-period, the correction and the recovery (NOTES Part 14). There is no
+before-and-after for Nippon on the main mechanism. A binary treated/control split would code as
+"treated in March 2024" a fund house that had been closed for eight months.
+
+Options 2, 3 and 4 remain live. **Still cannot choose between them** until the sweep shows how
+many of the 24 were already restricted going into February 2024.
+
+⚠️ **The question has sharpened.** It is no longer "have they ever restricted before" but
+**"was a restriction in force during the correction."** Those are different: an AMC that
+restricted in 2019, reopened, and restricted again in March 2024 has prior history but a genuine
+before-and-after. Nippon has neither.
+
+*→ This is itself a finding: an AMC with a documented history of capping inflows into its
+small-cap fund is a different animal from one that had never done so.*
+
+---
+
+## D30 — Two-source strategy for the restriction table (27 Aug 2026)
+
+**Decision.** Build the restriction table from **two document classes**, not one.
+
+| Class | Gives | Does not give |
+|---|---|---|
+| **Policy documents** — every AMC was directed to publish one | Current restriction status, cheaply, across all 24 | Effective dates. History |
+| **Addenda** — legal notices amending scheme terms | Effective dates, exact before/after values, full history | Wide coverage cheaply |
+
+**Why both.** A policy document is a status snapshot; an addendum is an event log entry. Policy
+documents alone cannot date the treatment, and their silence is ambiguous — an AMC that never
+restricted looks identical to one whose document is simply out of date.
+
+**Sequencing.** Policy documents first where they exist (cheap, wide coverage), then addenda for
+effective dates and for anywhere the policy is silent or ambiguous.
+
+### Harvest protocol, per AMC
+
+1. **Check for a second Notice/Addendum page** before recording "nothing found." Nippon runs a
+   stale archive (ends 2022) alongside a current page. See NOTES Part 14
+2. **Check July 2023 AND March 2024.** Nippon's July 2023 addendum carries most of the
+   treatment; looking only at March would misclassify it
+3. **Check for a corrigendum** on every addendum found — it can supersede a clause the same day
+4. **Copy the actual href.** The URLs are not constructible
+
+### Columns
+
+`amc` · `scheme_name` · `publication_date` · **`effective_date`** · `restriction_type` ·
+`old_value` → `new_value` · `source_url` · `status` · `confidence_note`
+
+**`status` is three-valued: `restricted` / `not_restricted` / `unknown`. Not a boolean.**
+A boolean has nowhere to put "couldn't find the archive" and will silently push it to false —
+which would define the control group partly by website quality, and any difference found could
+then be that. Absence of evidence is recorded as absence of evidence, not as evidence of absence.
+
+### Structural facts already learned from Nippon
+
+- **One addendum can carry several restriction types** with a single effective date
+  (no. 94: exit load *and* SIP cap)
+- **A corrigendum can supersede a clause on the same day as the original**, so date alone is not
+  a key
+
+### Schema comes after the spreadsheet
+
+Harvest five or six AMCs into a scratch spreadsheet first, then design `core.amc_restriction`
+from what the real documents contain. **Do not design the schema blind.**
+
+### Repository
+
+**Third-party PDFs are not committed** to a public repo. Commit the harvest CSV with source URLs
+— anyone can rebuild the document set from the links.
+
+---
+
+## D31 — 🔴 OPEN: the treatment date may post-date the outcome (27 Aug 2026)
+
+**Problem, not yet a decision.**
+
+Nippon's March 2024 addendum took effect **22-Mar-2024**. The Small Cap Fund's trough was
+**13-Mar-2024** (Part 13). The restriction post-dates by nine days the outcome it was supposed to
+help explain.
+
+D28 already noted that peaks preceded the intervention. This is the harder version: not "the
+timing is awkward" but **"the cause is after the effect."**
+
+**If this generalises across the 24, Q2 as written is not answerable.** No restriction effective
+in late March can explain a February–March drawdown.
+
+**Options, to weigh once the sweep gives the effective-date distribution:**
+
+1. Re-date treatment to each AMC's **operative** restriction — for Nippon, July 2023
+2. Drop Q2; lead with Q1 (flows) and Q3 (recovery), both of which sit after the effective dates
+3. Reframe Q2 around the **recovery** window rather than the drawdown
+4. Keep Q2 and **state the limitation explicitly as a finding**
+
+**Option 4 is not a cop-out.** "The intervention arrived after the correction had already
+bottomed" is a real and defensible result about regulatory timing, and it is more honest than
+forcing a causal story the dates do not support.
+
+⚠️ **Do not choose until effective dates for 5–6 AMCs are in hand.** If most restricted in early
+March, Q2 survives. If most look like Nippon, it does not.
+
+
+---
+
 ## OPEN / PENDING DECISIONS
 
 - [x] **Is the historical stress test archive retrievable?** → **RESOLVED 17 Aug 2026: YES.**
       Nippon's archive runs back to March 2024 with a fully predictable URL pattern.
       **Stress test parameters are IN SCOPE**, and the files also supply monthly scheme-level
       AUM — see D19 and NOTES.md Part 10.
-- [ ] Do the other 11 AMCs archive equally far back with equally predictable URLs?
+- [ ] Do the other 23 AMCs archive back far enough, and do they run a stale page alongside a
+      current one as Nippon does? ⚠️ **URLs are NOT predictable — Nippon's addendum filenames have
+      no pattern at all. Harvest hrefs; never construct them** (NOTES Part 14)
+- [ ] 🔴 **Effective-date distribution across the 24** — resolves D31
+- [ ] 🔴 **How many of the 24 were already restricted on 1 Feb 2024** — resolves D29
 - [ ] Final treated/control group definition for the small-cap analysis
 - [ ] Whether to treat 27 Feb (behavioural) and 15 Mar (disclosure) as separate events in the design
 - [ ] Which 2–3 independently verifiable events to use for validating the reconciliation engine

@@ -2,7 +2,7 @@
 
 **Project:** Small-cap stress testing & AMC inflow restrictions (Feb–Mar 2024)
 **Purpose:** Revision file. Everything here should be explainable out loud without notes.
-**Last updated:** 22 August 2026
+**Last updated:** 24 August 2026
 
 ---
 
@@ -390,13 +390,15 @@ March correction better?*
 
 ## PART 6 — THE EVENT (Feb–Mar 2024)
 
-⚠️ **All dates below are from news reporting and still need primary-source confirmation.**
+⚠️ **Most dates below are news-sourced.** Exception: **27 Feb 2024 is now primary-sourced** —
+Nippon's board-approved policy document (both v1.0 and v2.0) opens by citing a SEBI email of that
+date. See Part 14.
 
 ### Timeline
 | Date | Event |
 |---|---|
 | Feb 2024 | Nifty Smallcap 250 up ~71% over prior 52 weeks; Nifty Midcap 100 up ~64% vs Nifty ~28% |
-| **27 Feb 2024** | AMFI letter to AMCs: **moderate inflows** into small/midcap funds (following SEBI communication). Not publicly disclosed at the time |
+| **27 Feb 2024** | SEBI email directs AMFI to tell all AMC Trustees to **frame a policy** to protect small/midcap investors. The mandate is procedural — *have a policy* — not an instruction to restrict. "Moderating inflows" appears in Nippon's own policy as one example measure among others, not as the mandate's text. Letter not publicly disclosed; SEBI date confirmed from Nippon's policy document (Part 14) |
 | **28 Feb 2024** | AMFI letter: **stress test + risk disclosure requirements** |
 | Early Mar 2024 | SEBI chair Madhabi Puri Buch's "froth" comments → smallcap index plunged ~9% |
 | **15 Mar 2024** | First stress test disclosure deadline; every 15 days thereafter |
@@ -415,10 +417,14 @@ Four days apart, but **different interventions.** Treating them as one event mud
 The *size* is trivial against a category holding lakhs of crores. The **sign flip** is what matters —
 30 straight months of inflows, then reversal. First hard evidence retail sentiment turned.
 
-### AMC responses (confirmed so far — needs primary-source verification)
-Nippon (restricted from Jul 2023; tightened Mar 2024 — daily SIP cap cut ₹5 lakh → ₹50,000,
-exit load changed 1 month → 1 year), Tata, SBI, Kotak, ICICI Prudential, Franklin Templeton
-(lumpsum capped ₹2 lakh/month, SIP ₹50,000/month), Motilal Oswal (exit load change).
+### AMC responses
+**Nippon — fully primary-sourced, see Part 14.** Fresh lumpsum and switch-ins suspended from
+07-Jul-2023; SIP/STP cap cut ₹5 lakh → ₹50,000 per day per PAN and exit load extended 1 month →
+1 year, both effective 22-Mar-2024.
+
+**Still news-sourced, to be verified from addenda:** Tata, SBI, Kotak, ICICI Prudential,
+Franklin Templeton (lumpsum capped ₹2 lakh/month, SIP ₹50,000/month), Motilal Oswal
+(exit load change).
 
 **Not binary — at least four distinct restriction types:**
 1. Lumpsum suspension
@@ -523,6 +529,41 @@ can be found.
 
 *→ This is exactly the kind of detail that only surfaces from primary sources (D8).*
 
+### ✅ SOURCE VERIFICATION QUERIES — run before declaring constraints (22 Aug 2026)
+Each constraint in the Postgres schema was checked against the SQLite source first.
+
+| Check | Query | Result | Time |
+|---|---|---|---|
+| Null NAV values | `WHERE nav IS NULL` | **0** | 4,517 ms |
+| Zero/negative NAV | `WHERE nav <= 0` | **0** | 2,706 ms |
+| Null ISINs | `WHERE isin IS NULL` | **0** | 14 ms |
+| Blank ISINs | `WHERE isin = '' OR trim(isin) = ''` | **0** | 47 ms |
+
+⚠️ **Null and blank are different things.** A blank string passes an `IS NULL` check and passes a
+`UNIQUE` constraint, but is not a valid identifier. Always check both.
+
+**Principle: a constraint is a stated belief the database will check for you.** Declare what you
+believe to be true and let it fail loudly if you're wrong — rather than hoping and finding out
+during analysis.
+
+### 🖥️ psql vs PowerShell — two different prompts
+Repeated source of confusion, worth fixing once.
+
+| Prompt | What it is | Runs |
+|---|---|---|
+| `PS C:\...>` | Windows PowerShell | `psql`, `git`, `python` |
+| `amfi=#` | inside psql | SQL and backslash commands |
+| `amfi-#` | **psql mid-statement** | waiting for a `;` — everything typed is being swallowed |
+
+- **From PowerShell:** `psql -U postgres -d amfi -f path/to/file.sql` — runs the file and exits
+- **From inside psql:** `\i path/to/file.sql` — runs the file in the current session
+- **Never** type `psql ...` while already inside psql
+- `-c "..."` executes one statement and exits — it never enters the interactive prompt
+- `\copy` is a psql backslash command, so it only exists at the `amfi=#` prompt
+
+*The `U` marker on a VS Code tab is git's **Untracked** status, not an unsaved-file marker.
+Unsaved shows as a filled dot.*
+
 ---
 
 ## PART 9 — OPEN QUESTIONS / GAPS
@@ -563,7 +604,24 @@ can be found.
       something else? Sample the names
 - [ ] How many of the 38,107 codes are dead FMPs? Determines whether the scheme dimension needs
       a relevance filter before parsing
-- [ ] Exact effective dates for each AMC restriction — from AMC addenda, not news articles
+- [ ] 🔴 **How many of the 24 fund houses have PRIOR restriction history** (pre-2024)?
+      Determines whether the treatment variable needs restructuring — see D29
+- [ ] Verify the ₹94 cr March 2024 category net outflow against AMFI's monthly report.
+      Currently news-sourced, and Finding in Part 13 leans on it
+- [x] Does Nippon's "Policy on Mid Cap and Small Cap category" page state their position on the
+      Feb 2024 mandate directly? → **YES.** Both versions cite a SEBI email of 27 Feb 2024
+      directing AMFI to have AMCs frame a policy. Confirms the date from a primary source, and
+      shows the mandate was **procedural, not an instruction to restrict**. See Part 14
+- [x] **Exact effective dates for each AMC restriction** → **Nippon done** (07-Jul-2023 and
+      22-Mar-2024, Part 14). Remaining 23 open
+- [ ] 🔴 **Do other AMCs' March 2024 addenda also take effect AFTER their fund's trough?**
+      Nippon's did, by nine days. If this generalises, Q2 is not answerable as designed — see D31
+- [ ] 🔴 **How many of the 24 were already restricted on 1 Feb 2024?** Distinct from D29's
+      prior-history question: not "have they ever restricted" but "was a restriction in force
+      during the correction." Nippon: yes, since Jul 2023
+- [ ] Does every AMC publish a "Policy to protect the interest of investors of small/mid-cap
+      schemes"? Cheap status source across all 24 if so — see D30
+- [ ] Do other AMCs run a stale archive page alongside a current one, as Nippon does? (Part 14)
 
 
 ---
@@ -1084,3 +1142,368 @@ NAV archive at all, so the two sources are genuinely complementary rather than o
 
 **Verify with `EXPLAIN QUERY PLAN`.** `SCAN nav` means the index is not being used;
 `SEARCH nav USING INDEX ...` means it is. The Postgres equivalent is `EXPLAIN ANALYZE`.
+
+---
+
+## PART 12 — THE POSTGRES BUILD (24 Aug 2026)
+
+### Schema complete — 7 tables across 8 numbered files
+| File | Creates |
+|---|---|
+| `001_schemas.sql` | namespaces `staging`, `core` |
+| `002_schemes.sql` | `core.schemes` |
+| `003_securities.sql` | `core.securities` |
+| `004_nav.sql` | `core.nav` |
+| `005_amc.sql` | `core.amc` |
+| `006_scheme_lineage.sql` | `core.scheme_lineage` |
+| `007_stress_test.sql` | `core.stress_test` |
+| `008_indexes.sql` | 2 secondary indexes — **run after load** |
+
+Seeds in `sql/load/`: `001_seed_amc.sql` (24 rows), `002_load_core.sql` (bulk `\copy`),
+`003_seed_scheme_lineage.sql` (1 row).
+
+### Load results — all counts exact
+| Table | Rows |
+|---|---|
+| `core.schemes` | **38,107** |
+| `core.securities` | **34,937** |
+| `core.nav` (Jan 2022 → present slice) | **8,931,779** |
+
+⚠️ **The slice is 8.93M rows, not the ~6M estimated.** Scheme counts have grown over time, so
+recent years are denser than the 20-year average implies.
+
+**What the load silently proved:** ~27M constraint evaluations passed — every FK checked against
+`core.schemes`, every `nav_value` tested against `CHECK (> 0)`, every `(scheme_code, nav_date)`
+pair tested for uniqueness. **In SQLite these properties were established by querying. In Postgres
+they are enforced at the door and will be enforced on every future load.**
+
+### 🔑 69% of the archive is dead schemes
+`COUNT(DISTINCT scheme_code)` in the slice → **11,651**. Against 38,107 total, that leaves
+**26,456 schemes with no NAV since January 2022** — confirmed exactly by the LEFT JOIN count.
+
+Direct confirmation of the FMP hypothesis. Also validates the narrow-parsing decision: a universal
+parser would have processed 26,456 funds that have not existed in years.
+
+### Postgres vs SQLite benchmarks
+| Query | SQLite (indexed, 36.7M rows) | Postgres (indexed, 8.9M rows) |
+|---|---|---|
+| `COUNT(*) WHERE scheme_code = 100377` | 24 ms | 14.4 ms cold / **0.32 ms warm** |
+| `ORDER BY nav_date DESC LIMIT 10` | 13 ms | **0.07 ms** |
+| `COUNT(DISTINCT scheme_code)` | 1,509 ms | **9,418 ms** ← Postgres much slower |
+| `schemes LEFT JOIN nav` | 2,545 ms | **379 ms** |
+
+🔑 **`COUNT(DISTINCT)` is a known Postgres weakness** — it sorts or hashes every value rather than
+exploiting index ordering the way SQLite does. Six times slower on a quarter of the data.
+
+🔑 **Cold vs warm cache:** the same query showed 14.4 ms on first run and 0.32 ms under
+`EXPLAIN ANALYZE`. **The first run of anything measures the SSD, not the query.**
+
+### `EXPLAIN ANALYZE` confirmed the index design
+- `WHERE scheme_code = 100377` → **`Index Only Scan using pk_nav`**, `Heap Fetches: 0`.
+  The composite PK's leading column answered it; a separate `scheme_code` index would be redundant
+- `ORDER BY nav_date DESC LIMIT 10` → **`Index Only Scan Backward using idx_nav_date_scheme`**.
+  The PK cannot serve this — leftmost prefix rule verified by the planner
+
+**Postgres terminology map:** `Index Only Scan` = SQLite's `COVERING INDEX`. `Seq Scan` = no index.
+`EXPLAIN ANALYZE` executes the query and reports real timings, unlike `EXPLAIN QUERY PLAN`.
+
+---
+
+## PART 13 — FIRST ANALYSIS: NIPPON, MARCH 2024 (24 Aug 2026)
+
+### 🔑 THE MEASUREMENT LESSON — the most important thing learned so far
+
+**Month-end returns and peak-to-trough drawdown are different measures and give opposite answers.**
+
+| | Month-end return (29 Feb → 31 Mar) | Peak-to-trough drawdown |
+|---|---|---|
+| Small Cap Fund (113177) | **−0.92%** | **−8.45%** |
+| Growth Fund (100377) | **+0.70%** | **−6.74%** |
+
+Nine-fold difference. Same funds, same period.
+
+**Why:** the segment crashed in early-to-mid March and rebounded hard before month-end. Comparing
+two endpoints sees only the net of a violent round trip. *Analogy: checking your phone only on the
+first and last day of the month — you would have no idea anything happened.*
+
+**Peak** = highest point. **Trough** = lowest point after it. **Drawdown** = the fall between them.
+Both measures are correct; the first says *if you never looked, you did fine*, the second says
+*at the worst moment this lost X%*.
+
+*→ Part 0's outcome variable is peak-to-trough drawdown. That choice is now empirically justified,
+not stylistic. Month-end returns would have shown the correction barely touched these funds.*
+
+### Peak and trough dates — and two problems they reveal
+| Scheme | Peak | Trough | Drawdown |
+|---|---|---|---|
+| Small Cap (113177) | 7 Feb 2024, 145.0926 | 13 Mar 2024, 132.8328 | −8.45% |
+| Growth / mid cap (100377) | 8 Feb 2024, 3319.7172 | 20 Mar 2024, 3096.0721 | −6.74% |
+
+🔴 **Problem 1 — the peaks precede the intervention.** Peaks are 7–8 Feb; the AMFI letters are
+27–28 Feb. **These funds had been falling for three weeks before the intervention landed.**
+So the restrictions did not cause the decline, and were not a response to a fall that had visibly
+started — they landed mid-slide. The question is therefore not *"did the restriction prevent a
+fall"* but *"did it change what happened after the fall was already underway."* State this plainly.
+
+🔴 **Problem 2 — troughs differ by a week.** 13 Mar vs 20 Mar. There is **no common bottom date**.
+Each scheme needs its own trough found independently — a `PARTITION BY scheme_code` job when
+scaling to 24 fund houses, not a fixed date.
+
+Small cap fell more than mid cap (8.45% vs 6.74%), consistent with small caps being the frothier
+segment and the one the regulator named.
+
+### ✅ Q1 ANSWERED — the flow decomposition
+Formula: **Net flow ≈ AUM_end − [AUM_start × (1 + NAV return)]**
+
+| Scheme | Feb AUM | Mar AUM | NAV return | Expected AUM | Implied flow |
+|---|---|---|---|---|---|
+| Growth Fund | ₹24,493.62 cr | ₹24,796.00 cr | +0.70% | ₹24,665.7 cr | **+₹130 cr INFLOW** |
+| Small Cap Fund | ₹46,029.84 cr | ₹45,248.33 cr | −0.92% | ₹45,605.0 cr | **−₹357 cr OUTFLOW** |
+
+**They moved in opposite directions.** The restricted small-cap fund bled; the mid-cap fund took
+money in.
+
+### 🔑 FINDING — the category headline masks large dispersion
+The small-cap **category** recorded **₹94 cr net outflow** in March 2024.
+Nippon's single scheme lost **₹357 cr** — nearly **four times the entire category's net figure**.
+
+**If one AMC accounts for 4× the category's net outflow, the rest of the category must have been
+taking money in.**
+
+*→ This is pre-registered expectation #4 (Part 0), and it is the "why did one company behave
+differently" question the project was built around.*
+
+⚠️ **Do not overclaim.** The ₹94 cr figure is news-sourced and needs verifying against AMFI's
+monthly report. And the AUM is whole-scheme while the NAV is one plan.
+
+### ⚠️ Known approximation — the granularity trap in the analysis
+AUM is whole-scheme across all plans and options. NAV is for **one plan** (100377 is legacy
+Regular Growth). Direct plans return slightly more because expenses are lower, so a Regular return
+understates the whole-scheme return marginally. Over one month the error is a few basis points.
+**Acceptable, but it belongs in the write-up rather than being quietly ignored.**
+
+### 🔴 TREATMENT DEFINITION PROBLEM — Nippon has restricted this fund for six years
+From Nippon's addenda archive:
+
+| Date | Action |
+|---|---|
+| 2018 | Limit the subscription in Reliance Small Cap Fund |
+| 14-10-2019 | Fresh subscription limit via SIP/STP raised ₹1 lakh → ₹5 lakh |
+| 16-03-2020 | Acceptance of subscription of units |
+| 31-03-2020 | **Withdrawal** of subscription limit |
+| 04-02-2021 | Revision in exit load structure, w.e.f. 5 Feb 2021 |
+| **07-07-2023** | **Fresh lumpsum/switch-ins suspended; SIP/STP capped ₹5 lakh/day/PAN** (primary-sourced, Part 14) |
+| **22-03-2024** | **SIP/STP cap cut to ₹50,000/day/PAN; exit load 1 month → 1 year** (primary-sourced, Part 14) |
+
+**March 2024 was not a first intervention. It is the latest in a six-year pattern of tightening
+and loosening.**
+
+*→ "Restricted in 2024" does not cleanly separate Nippon from an AMC restricting for the first
+time. For Nippon the behaviour is continuation of policy, not response to the event. An AMC with a
+documented history of capping inflows is a different animal from one that had never done so.*
+**This must be handled in the treatment definition — see D29.**
+
+### Source URLs
+- 🔴 **Nippon addenda — CURRENT page:**
+  `https://mf.nipponindiaim.com/investor-service/quick-links/notice-addendum`
+- ⚠️ Nippon addenda — **STALE** archive page, newest entry 31-10-2022. Do not use:
+  `https://mf.nipponindiaim.com/investor-service/downloads/notice-addendum`
+  (An earlier note claimed the 2024 entries here needed a JavaScript year filter. **That was
+  wrong.** They are on the Quick Links page, which is a different URL. See Part 14)
+- Addendum PDFs live under `https://mf.nipponindiaim.com/InvestorServices/Addenda/`
+  — **filenames have no pattern and cannot be constructed. Harvest the href.**
+- 🔑 **Nippon's stated mid/small cap policy:**
+  `https://mf.nipponindiaim.com/investor-service/disclosures/policy-on-mid-cap-and-small-cap-category`
+
+---
+
+## PART 14 — NIPPON ADDENDA, PRIMARY SOURCED (27 August 2026)
+
+Everything in this Part comes from the documents themselves, not from news reporting.
+
+### The two-page trap
+
+Nippon has **two** pages both titled "Notice/Addendum":
+
+| Path | State |
+|---|---|
+| `/investor-service/downloads/notice-addendum` | **Stale archive.** Newest entry 31-10-2022 |
+| `/investor-service/quick-links/notice-addendum` | **Current.** Runs to the present |
+
+Same name, different section of the site menu. Landing on the Downloads page makes it look as
+though the fund house stopped publishing addenda in 2022.
+
+**Before recording any AMC as having no recent addenda, look for a second page.** This is now the
+first check in the sweep protocol (D30).
+
+### Filenames are not constructible
+
+Four files from the same `/InvestorServices/Addenda/` folder:
+
+- `94-Exit-load-of-Small-cap-and-further-limit-subscription.pdf`
+- `33-Small-cap-fund-restriction.pdf`
+- `Limit-the-subscription-in-Nippon-India-Small-Cap-Fund.pdf`
+- `Notice-No-82-W12-x-H15.pdf`
+
+No pattern. The `W12 x H15` in older filenames appears to be newspaper advertisement dimensions
+— a printing artifact, not an identifier.
+
+**Harvest the href; never build the URL.** Same lesson as the stress test files, now the second
+occurrence. This is why the source URL column in the restriction table is mandatory rather than a
+convenience: there is no rule that would let it be regenerated later.
+
+### Nippon India Small Cap Fund — restriction timeline
+
+| Effective | Fresh lumpsum / additional / switch-in | Fresh SIP/STP cap | Exit load |
+|---|---|---|---|
+| before 07-Jul-2023 | open | none | 1% within 1 month |
+| **07-Jul-2023** | **suspended till further notice** | **₹5 lakh/day/PAN** | 1% within 1 month |
+| **22-Mar-2024** | still suspended | **₹50,000/day/PAN** | **1% within 1 year** |
+
+**Sources:**
+- Notice cum Addendum no. 20, dated 06-Jul-2023, effective 07-Jul-2023
+  — `Limit-the-subscription-in-Nippon-India-Small-Cap-Fund.pdf`
+- Corrigendum to no. 20, same date
+  — `Corrigendum-Limit-the-subscription-in-Nippon-India-Small-Cap-Fund.pdf`
+- Notice cum Addendum no. 94, dated 19-Mar-2024, effective 22-Mar-2024
+  — `94-Exit-load-of-Small-cap-and-further-limit-subscription.pdf`
+
+**Exact wording of the July 2023 suspension:** fresh/additional subscriptions and switch-ins
+"will not be allowed/accepted at any point of time till further notice."
+
+**Carve-outs, identical in both addenda:**
+- SIP/STP registered **before** the effective date continue unaffected
+- Dividend Reinvestment Option unitholders unaffected
+- AMC and designated-employee mandatory contributions exempt
+
+**Stated rationale, near-identical wording in both:** to facilitate gradual deployment of corpus
+in order to align with the nature of small-cap investing, warranted by the sharp rally in the
+small-cap space and increased participation through high-ticket investments.
+
+### 🔴 Finding 1 — the March restriction post-dates the trough
+
+Addendum 94 was published 19-Mar-2024 and takes effect **22-Mar-2024**.
+The Small Cap Fund trough (Part 13) is **13-Mar-2024**.
+
+**The March 2024 restriction took effect nine days after the fund had already bottomed.** It
+cannot have caused or moderated the drawdown, because it did not exist yet.
+
+For Nippon, the restriction operating throughout the correction is the **July 2023** one.
+
+This is a harder problem than D28's observation that peaks preceded the intervention. That was
+awkward timing. This is the cause arriving after the effect. If the same pattern holds at other
+AMCs, **Q2 (drawdown by treatment group) may not be answerable as written**, and the live
+questions become Q1 (flows) and Q3 (recovery). See D31.
+
+### 🔴 Finding 2 — Nippon has no before-and-after on the main mechanism
+
+Fresh lumpsum and switch-ins were suspended **continuously** from 07-Jul-2023 through the
+pre-period, the correction and the recovery. The "no new money means no forced choice" mechanism
+described in Part 0 was in force the entire time.
+
+What actually changed in March 2024: the SIP cap fell 10×, and the exit load extended from one
+month to one year. Both are real changes, but both are narrower than "shut the door."
+
+**D29 option 1 (binary treated/control) is therefore eliminated for Nippon** — not as a
+hypothesis but as a documented fact.
+
+### Finding 3 — the restriction is narrower than "closed"
+
+Existing SIPs and STPs kept running throughout. Only **new** registrations were capped, and
+capped rather than blocked. Dividend reinvestment continued.
+
+So the fund kept receiving money from every SIP registered before July 2023 — which is most of
+them. This is the mechanism behind the Part 13 flow result, and the Part 0 description of the
+treatment should be read with this narrowing in mind.
+
+### Corrigenda exist and can change meaning
+
+The 06-Jul-2023 corrigendum reissued **only** the fresh-registration paragraph, on the same day
+as the original addendum.
+
+The change: the original read "SIP **without initial investment** or STP...", the corrigendum
+dropped that condition. The amount (₹5 lakh/day/PAN) was unchanged.
+
+Reading only the original would have misstated who the restriction applied to.
+**Check for a corrigendum on every addendum harvested.**
+
+### Drafting convention to watch
+
+Both addenda use the phrase "shall **continue** with a limit of Rs X" — July says ₹5 lakh,
+March says ₹50,000.
+
+The word describes *the cap remaining in place*, not *the level being unchanged*. A phrase that
+reads like continuity may in fact be announcing a change.
+
+**Compare the numbers, not the verbs.** The same house style will appear at other AMCs.
+
+### One addendum, two restriction types
+
+Addendum 94 contains an exit load revision **and** a subscription limit, sharing a single
+effective date. The restriction table must be able to hold both without forcing a choice between
+them — see D30.
+
+### Checked and cleared: the 22-Feb-2024 addendum
+
+Addendum 84, "Suspension of subscription in certain schemes of Nippon India Mutual Fund," dated
+22-Feb-2024 — five days **before** the SEBI email, which would have been significant.
+
+**It is overseas funds only:** Nippon India US Equity Opportunities Fund, Nippon India Japan
+Equity Fund, Nippon India Taiwan Equity Fund, Nippon India ETF Hang Seng BeES. The cause is
+overseas investment limit headroom, traceable back to a SEBI email of 28-Jan-2022 and an AMFI
+communication of 30-Jan-2022.
+
+**Nothing to do with small caps. The event date is unaffected.**
+
+### The policy documents — a separate document class
+
+Nippon publishes a "Policy to protect the interest of investors of small-cap & mid-cap schemes":
+
+- **v1.0**, dated 16-Mar-2024
+- **v2.0**, dated October 2024
+- at `/investor-service/disclosures/policy-on-mid-cap-and-small-cap-category`
+
+Both open by citing the SEBI email of 27-Feb-2024 directing AMFI to have all AMC Trustees frame
+such a policy. **Every AMC was directed to do this, so every AMC probably has one** — potentially
+a cheap status source across all 24.
+
+**But it is not a substitute for the addenda:**
+
+- **No effective dates.** Section 5.2 says a restriction is "currently" in place. It is a status
+  snapshot, not an event log. Treatment timing cannot be recovered from it
+- **v1.0 is dated 16-Mar-2024** — a restriction imposed on, say, 20 March would not appear in it
+- **Silence ≠ control.** An AMC that never restricted may simply have no 5.2 paragraph. Absent
+  evidence is `unknown`, and the absence looks deceptively like a clean negative
+
+**Policy documents give status. Addenda give dates and history.** Both are needed — see D30.
+
+Note also: section 5.2 of both versions names **only the Small Cap Fund**. The mid-cap Growth
+Fund carries no restriction anywhere in the document. Within Nippon, 113177's scheme is
+restricted and 100377's is not — which is consistent with the Part 13 flow result, though with
+n=2 that is a consistency check passing, not a finding.
+
+### Compliance finding in Annexure A
+
+The policy document reproduces the SEBI/AMFI-approved stress test disclosure template. Its first
+two columns are **AMFI Scheme Code** and **As of (Portfolio date)**, with example rows dated
+29-02-2024.
+
+Part 10 records that Nippon's actual March, April, May and June 2024 files **dropped both
+columns**, starting instead at Scheme Name.
+
+So: the approved template mandates the join key, the February file supplied it, and every
+subsequent file omitted it. That is a documented deviation from a regulator-approved format,
+found by comparing the template against the delivered files — a considerably better interview
+answer than "the format was inconsistent."
+
+⚠️ **Column-lettering trap.** The template labels its data columns **(A)–(O)**, starting at
+days-to-liquidate. Part 10 labels the spreadsheet columns **A–Q**, starting at Scheme Name.
+
+**These are two different lettering schemes for the same file.** "Column C" means top-10 investor
+concentration in the methodology note, and a days-to-liquidate figure in the actual spreadsheet.
+The template's own footnote is internally inconsistent too — it calls Beta (I) where the table
+says (J), and turnover (N) where the table says (O), suggesting it was carried over from an
+earlier revision with fewer benchmark columns.
+
+**Name columns semantically in all loader code. Never by letter.** A header comment saying
+"column C" is unreadable to future-you.
