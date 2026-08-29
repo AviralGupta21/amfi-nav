@@ -3,32 +3,172 @@
 A PostgreSQL pipeline over Indian mutual fund data, built to study how asset management
 companies responded to SEBI's small-cap liquidity intervention of February–March 2024.
 
-> **Status: in progress.** Research and data sourcing complete; ingestion underway.
-> Findings below are preliminary and marked as verified or hypothesised.
+> **Status: analysis in progress.** The regulatory dataset is complete and primary-sourced
+> across all 24 fund houses in scope. The NAV-based analysis is underway. Findings below are
+> marked verified or hypothesised.
 
 ---
 
 ## The question
 
-In late February 2024, AMFI — acting on a communication from SEBI — asked fund houses to
-moderate inflows into small and mid-cap funds, and required them to publish fortnightly
-liquidity stress tests. Small-cap indices fell roughly 13% over the following month, and the
-category recorded its first net outflow in 30 months.
+On 27 February 2024, SEBI directed AMFI to require every fund house to frame a policy protecting
+investors in small and mid-cap schemes, and to publish regular liquidity stress tests. Small-cap
+indices fell roughly 13% over the following month, and the category recorded its first net
+outflow in 30 months.
 
-Every fund house faced the same rule on the same date. **They responded differently** — some
-suspended lumpsum investments entirely, some capped SIPs, some raised exit loads, some did
-nothing, and some later reversed course.
+The mandate was procedural — *have a policy* — not an instruction to restrict. Every fund house
+faced it on the same day, and each was free to respond as it chose. That makes the episode a
+natural experiment in how fund managers actually behave when a regulator signals concern.
 
 This project asks:
 
-1. Did the funds that restricted inflows behave measurably differently through the correction
-   and the recovery?
-2. Of the funds that were affected, **why did some hold up better than others?** Does pre-event
-   portfolio liquidity, cash position, or investor concentration explain the difference?
-3. How much of each fund's AUM movement was performance, and how much was investor flow?
+1. **How did fund houses actually respond?** Who restricted inflows, when, how severely, and for
+   how long?
+2. **Does the timing support a causal story** about the correction, or not?
+3. **How much of each fund's AUM movement was performance, and how much was investor flow?**
 
-Question 3 matters most. AUM growth is routinely reported as evidence of fund quality when it
-is often just distribution. Separating the two is the analytical core of this project.
+Question 3 matters most analytically. AUM growth is routinely reported as evidence of fund
+quality when it is often just distribution. Separating the two requires daily NAV data and is
+the core of the pipeline.
+
+---
+
+## What this repository contains that you cannot easily get elsewhere
+
+The central asset here is a **complete, primary-sourced record of small-cap subscription
+restrictions across all 24 Indian fund houses running an actively managed small-cap scheme.**
+
+No such consolidated record is published. Each fund house files restrictions as
+"notice-cum-addendum" PDFs on its own website, under a different menu path, with a different
+numbering convention and no predictable filenames. Press coverage is partial and, in several
+cases, factually wrong about dates and amounts.
+
+Every row below was read from the fund house's own addendum and cross-checked. **You do not need
+to visit any AMC website to use this repository.**
+
+---
+
+## The regulatory dataset
+
+### Restriction status across the study universe
+
+| Fund house | Small-cap state entering Feb 2024 | Acted in the Feb–Mar 2024 window |
+|---|---|---|
+| SBI | Lumpsum closed since 08 Sep 2020 | — |
+| Tata | Lumpsum closed since 01 Jul 2023 | — |
+| Nippon India | Lumpsum closed since 07 Jul 2023 | **Yes** — tightened, eff. 22 Mar 2024 |
+| Kotak Mahindra | Open | **Yes** — eff. 04 Mar 2024 |
+| ICICI Prudential | Open | **Yes** — eff. 14 Mar 2024 |
+| Franklin Templeton | Open | **Yes** — eff. 18 Mar 2024 |
+| Axis | Nominal ₹1 crore/day cap since May 2023 | — |
+| Aditya Birla Sun Life | Open | — |
+| Bandhan | Open | — |
+| Bank of India | Open | — |
+| Baroda BNP Paribas | Open | — |
+| Canara Robeco | Open | — |
+| DSP | Open (was closed 2017–2020) | — |
+| Edelweiss | Open | — |
+| HDFC | Open | — |
+| HSBC | Open | — |
+| Invesco | Open | — |
+| ITI | Open | — |
+| Mahindra Manulife | Open | — |
+| PGIM India | Open (briefly capped Aug 2021) | — |
+| Sundaram | Open | — |
+| UTI | Open | — |
+| Union | Open | — |
+| quant | Open | — |
+
+**Three fund houses were already closed to lumpsum before the mandate. Four acted within the
+window. Seventeen did nothing.**
+
+### Restriction severity, for those that restricted
+
+Restrictions are not binary. Lumpsum status and systematic-plan caps move independently, and
+severity spans two orders of magnitude.
+
+| Fund house | Lumpsum | Fresh SIP/STP cap |
+|---|---|---|
+| Tata | Suspended | Uncapped |
+| SBI | Suspended | ₹25,000 / month / PAN |
+| Nippon India | Suspended | ₹50,000 / **day** / PAN (from 22 Mar 2024; previously ₹5 lakh/day) |
+| ICICI Prudential | Suspended | ₹2,00,000 / month / PAN |
+| Kotak Mahindra | ₹2,00,000 / month / PAN | ₹25,000 / month / PAN |
+| Franklin Templeton | ₹2,00,000 / month / PAN | ₹50,000 / month / PAN |
+| Axis | ₹1 crore / **day** / PAN | Included in the same cumulative cap |
+
+Note the units: some caps are monthly, some daily. SBI's ₹25,000/month and Nippon's
+₹50,000/day differ by roughly 60× in annual terms. The schema stores value and unit separately
+for this reason, and any binary treated/control flag is derived from a stated severity
+threshold rather than assigned by hand.
+
+### Reversals
+
+Two fund houses reopened, giving complete open → closed → open cycles:
+
+| Fund house | Closed | Reopened | Duration |
+|---|---|---|---|
+| Kotak Mahindra | 04 Mar 2024 | 02 Jul 2024 | 4 months |
+| ICICI Prudential | 14 Mar 2024 | 23 Jan 2026 | 22 months |
+
+ICICI additionally restored one systematic product (Freedom SIP) on 05 Jul 2024 while keeping
+lumpsum suspended, and was the only fund house to state a reopening condition in the original
+notice: lumpsum would resume when, in its assessment, valuations became attractive.
+
+---
+
+## Findings
+
+**✅ Verified — the intervention produced almost no new restrictions.**
+Of 24 fund houses, four changed their small-cap subscription terms in the month following the
+SEBI communication. Two of those four were already restricted and merely tightened. **Three
+genuinely new restrictions resulted: Kotak, ICICI Prudential and Franklin Templeton.**
+
+**✅ Verified — the timing does not support a causal story about the correction.**
+Kotak's notice is dated 26 February 2024, *one day before* the SEBI communication — its board
+had already decided. The other three took effect on or after the 13 March market trough: ICICI
+Prudential on 14 March, Franklin on 18 March, Nippon on 22 March. **No restriction imposed in
+this window can have caused or moderated a drawdown that had already ended.**
+
+**✅ Verified — the fund houses that did close moved long before the regulator.**
+SBI closed to lumpsum in September 2020, Tata and Nippon in July 2023 — seven months to three
+and a half years ahead of the mandate. All cited the small-cap rally and difficulty deploying
+new capital, not any regulatory instruction.
+
+**✅ Verified — fund size does not explain who restricted.**
+The obvious hypothesis is that the largest funds hit capacity limits first. It does not hold.
+HDFC (among the two largest small-cap schemes in India) and quant (the fastest-growing, from
+roughly ₹2,000 crore to ₹17,000 crore across 2023) both stayed fully open, while ICICI
+Prudential suspended lumpsum on a smaller fund. Tested and rejected.
+
+**✅ Verified — restrictions are a valuation tool, not a crash-protection tool.**
+Fund houses consistently loosen during corrections and tighten during rallies — the opposite of
+what "restricting inflows protects investors in a fall" would predict. SBI removed its
+systematic-plan restrictions in May 2020 mid-COVID and reimposed them that September as markets
+recovered. DSP, closed since 2017, fully reopened on 1 April 2020. Axis cut its cap 40× in March
+2020 and restored it three weeks later.
+
+**✅ Verified — liquidity evaporates exactly when it is needed.**
+Nippon India Small Cap Fund's AUM *fell* 1.7% during March 2024, yet the time required to
+liquidate half its portfolio *rose* from 27 to 29 days. A smaller portfolio should be easier to
+sell; it became harder because the metric depends on market trading volumes as well as fund
+size, and volumes contracted during the correction. By June, with AUM 23% higher than February,
+the figure had fallen back to 26 days. **The stress test measures market conditions at least as
+much as it measures the fund.**
+
+**✅ Verified — a fund's identity is stable in its code and unstable in its name.**
+Nippon India's mid-cap fund appears in the regulatory disclosure as "Nippon India Growth Fund",
+in the NAV archive as "Nippon India Growth Mid Cap Fund", and in its pre-2019 form as "Reliance
+Growth Fund" — with nine distinct codes across plan and option variants, in three separator
+conventions and two casings. Six fund houses in the study universe renamed or merged during the
+study period. Matching by name fails silently; matching by code does not.
+
+**🔬 Hypothesis — the category-level outflow masks large dispersion between fund houses.**
+The small-cap category recorded a ₹94 crore net outflow in March 2024. Nippon's two disclosed
+schemes moved in opposite directions over the same month, with the restricted small-cap scheme
+showing a far larger outflow than the entire category's net figure. If individual fund houses
+took inflows while the category bled, the headline number conceals the more interesting story.
+*Being tested across the full universe.*
 
 ---
 
@@ -37,48 +177,28 @@ is often just distribution. Separating the two is the analytical core of this pr
 | Source | What it provides | Coverage |
 |---|---|---|
 | AMFI daily NAV history | Daily NAV per scheme | 36.7M rows, 38,107 scheme codes, Apr 2006 – present |
-| AMC stress test disclosures | Liquidation days, cash %, cap-segment split, investor concentration, beta, PE, turnover — **and monthly scheme-level AUM** | Feb 2024 onward, mid & small cap schemes only |
-| AMC addenda | Restriction type, effective date, reversal date | Manually compiled from primary filings |
+| AMC stress test disclosures | Liquidation days, cash %, cap-segment split, investor concentration, beta, PE, turnover — and **monthly scheme-level AUM** | Feb 2024 onward, mid & small cap schemes only |
+| AMC notice-cum-addenda | Restriction type, effective date, severity, reversal date | Compiled from primary filings across all 24 fund houses |
 
 All sources are public regulatory disclosures. No paid or licensed data is used.
 
-**On data sources and quality:** the historical NAV archive used here is a community mirror of
-AMFI's published data, and it has been cleaned on import — every NAV value is numerically typed
-and every date is ISO-formatted across all 36.7 million rows. AMFI's own published feed is not
-that tidy. The pipeline therefore reads the mirror for historical depth and goes directly to
-AMFI's source files for the analysis window, so that ingestion handles real input rather than
-pre-sanitised input.
+**On the NAV archive:** the historical data used here is a community mirror of AMFI's published
+feed, cleaned on import — every NAV numerically typed, every date ISO-formatted across all 36.7
+million rows. AMFI's own feed is not that tidy. The pipeline reads the mirror for historical
+depth and goes directly to AMFI's source files for the analysis window, so ingestion handles
+real input rather than pre-sanitised input.
 
-The defects that matter here are not type errors anyway. They are semantic: NAVs unchanged
-across consecutive trading days, missing business days, Direct plans priced below their Regular
-counterparts when lower expenses make that impossible, scheme codes that discontinue at mergers.
-Catching those requires knowing what the numbers mean, which is the point.
+The defects that matter are semantic, not structural: NAVs unchanged across consecutive trading
+days, missing business days, Direct plans priced below their Regular counterparts when lower
+expenses make that impossible, scheme codes that discontinue at mergers. Catching those requires
+knowing what the numbers mean.
 
----
-
-## Preliminary findings
-
-**✅ Verified — liquidity evaporates exactly when it is needed.**
-Nippon India Small Cap Fund's AUM *fell* 1.7% during March 2024, yet the time required to
-liquidate half its portfolio *rose* from 27 to 29 days. A smaller portfolio should be easier to
-sell; it became harder because the metric depends on market trading volumes as well as fund size,
-and volumes contracted during the correction. By June, with AUM 23% higher than February, the
-figure had fallen back to 26 days. **The stress test measures market conditions at least as much
-as it measures the fund.**
-
-**🔬 Hypothesis — the category-level outflow may mask large dispersion between fund houses.**
-The small-cap category recorded a ₹94 crore net outflow in March 2024. Over the same month,
-Nippon's two disclosed schemes show AUM changes far smaller than the index decline would imply,
-which is only possible if new money was arriving. If individual fund houses took inflows while
-the category bled, the headline figure conceals the more interesting story. *Not yet tested —
-requires the NAV-based flow decomposition.*
-
-**✅ Verified — a fund's identity is stable in its code and unstable in its name.**
-Nippon India's mid-cap fund appears in the regulatory disclosure as "Nippon India Growth Fund",
-in the NAV archive as "Nippon India Growth Mid Cap Fund", and in its pre-2019 form as "Reliance
-Growth Fund" — with nine distinct codes across the plan and option variants, written in three
-different separator conventions and two different casings. Matching these records by name fails
-silently; matching by code does not. The reconciliation layer is built on that distinction.
+**On the addenda:** these are legal notices amending a scheme's Scheme Information Document, and
+they are the authoritative record of what changed and when. Press reporting was checked against
+them throughout and was wrong on several material points — including the effective date of at
+least one restriction and the claim that a widely covered fund house had "first placed
+restrictions in July 2023" when its own filings show an earlier episode. Where the two conflict,
+the filing governs.
 
 ---
 
@@ -88,37 +208,52 @@ silently; matching by code does not. The reconciliation layer is built on that d
 sql/schema/     table, index and constraint definitions
 sql/load/       staging and bulk-load steps
 sql/analysis/   the queries behind the findings above
+data/           the compiled restriction dataset, with source URLs
 scripts/        data acquisition and orchestration
-notes/          working notes as the analysis develops
-NOTES.md        domain concepts, vocabulary and source documentation
-DECISIONS.md    every design decision with its reasoning
 ```
 
-`DECISIONS.md` is the file to read if you want to know *why* the project is built this way.
-Scope choices, rejected alternatives, and corrections to earlier assumptions are all recorded
-there, including the ones that turned out to be wrong.
+The restriction dataset in `data/` carries a source URL for every row, so any figure in this
+README can be traced to the originating filing.
 
 ---
 
 ## Reproducing this
 
-Raw data is not committed — the repository holds the code that builds the database, not the
-database itself. Acquisition scripts and load order are in `scripts/` and `sql/load/`.
+Raw NAV data is not committed — the repository holds the code that builds the database, not the
+database itself. Third-party PDFs are not redistributed; the restriction dataset carries links
+to each original filing instead.
 
 *Setup instructions to follow once the ingestion layer is complete.*
 
 ---
 
-## Notes on scope
+## Scope and limitations
 
-The analysis is deliberately bounded by what public data can actually support. Scheme-level AUM
-is published quarterly by AMFI, which is too coarse for a month-long event — the stress test
-disclosures supply monthly AUM, but only for mid and small cap schemes and only from February 2024.
-Where a question cannot be answered within those limits, it is documented as a limitation rather
-than estimated around.
+**The study universe is the 24 fund houses running an actively managed small-cap scheme**,
+derived from AMFI scheme data rather than chosen by hand.
 
-The full archive is loaded — all 38,107 scheme codes — but scheme names are parsed into a clean
-plan and option hierarchy only for the schemes the analysis touches. The remainder are largely
-closed-ended fixed maturity plans that matured years before the event studied here, and building
-a universal parser for them would be effort spent on data the questions never reach. This is a
-scope decision, not an omission.
+**Restriction status is recorded three-valued** — restricted, not restricted, or unknown. Where
+a fund house's archive could not be fully verified, the row is marked accordingly rather than
+defaulted into the control group, since doing otherwise would define the control group partly by
+website quality.
+
+**Two schemes cannot support a before-and-after comparison.** Baroda BNP Paribas Small Cap Fund
+launched on 30 October 2023, four months before the event, and Mahindra Manulife's in December
+2022. They appear in the regulatory dataset but are excluded from time-series analysis for want
+of a baseline.
+
+**Restriction parameters appear coordinated rather than independent.** Several fund houses
+adopted identical caps, identical breach-handling language and identical carve-outs within weeks
+of each other, which suggests a shared industry template. This weakens the assumption that each
+fund house's decision was made independently, and is stated as a limitation rather than assumed
+away.
+
+**Scheme-level AUM is published quarterly by AMFI**, too coarse for a month-long event. The
+stress test disclosures supply monthly AUM, but only for mid and small cap schemes and only from
+February 2024. Where a question cannot be answered within those limits, it is documented as a
+limitation rather than estimated around.
+
+**The full NAV archive is loaded** — all 38,107 scheme codes — but scheme names are parsed into a
+clean plan and option hierarchy only for the schemes the analysis touches. The remainder are
+largely closed-ended fixed maturity plans that matured years before the event studied here. This
+is a scope decision, not an omission.
