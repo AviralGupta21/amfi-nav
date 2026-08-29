@@ -588,8 +588,8 @@ Unsaved shows as a filled dot.*
       March 2024 volume data available to verify it directly?
 - [x] **Why did Small Cap liquidation days stay flat while AUM grew 23%?** → Answered by the
       March file: the metric tracks market volumes, not just fund size
-- [ ] Do the other 11 AMCs archive back to Feb 2024? (Assume nothing about URL conventions —
-      Nippon used three in four months)
+- [x] Do the other AMCs archive back to Feb 2024? → **YES, all 24 reachable.** Sweep complete,
+      see Part 15. Archive structures vary wildly; URL conventions are never predictable
 - [ ] Exact wording of the AMFI 28 Feb letter on cadence — was "every 15 days" accurate reporting?
 - [x] 🔴 **What is stored in `nav.date`?** → **TEXT**, uniformly, all 36.7M rows.
       ⚠️ Format still unchecked — see below
@@ -1507,3 +1507,328 @@ earlier revision with fewer benchmark columns.
 
 **Name columns semantically in all loader code. Never by letter.** A header comment saying
 "column C" is unreadable to future-you.
+
+---
+
+## PART 15 — THE FULL 24-AMC ADDENDA SWEEP (29 August 2026)
+
+Every fund house in the study universe checked against its own addenda archive, cross-checked
+against third-party fund data and contemporaneous reporting. **This Part supersedes all
+news-sourced restriction claims elsewhere in NOTES.**
+
+### The headline result
+
+| | Small-cap state, Feb 2024 | Acted in Feb–Mar 2024 window |
+|---|---|---|
+| **SBI** | lumpsum closed since 08-Sep-2020 | no |
+| **Tata** | lumpsum closed since 01-Jul-2023 | no |
+| **Nippon** | lumpsum closed since 07-Jul-2023 | **yes — eff. 22-Mar** |
+| **Kotak** | open | **yes — eff. 04-Mar** |
+| **ICICI Prudential** | open | **yes — eff. 14-Mar** |
+| **Franklin Templeton** | open | **yes — eff. 18-Mar** |
+| **Axis** | ₹1 cr/day cap — nominal | no |
+| ABSL, Bandhan, BOI, Baroda BNP, Canara Robeco, DSP, Edelweiss, HDFC, HSBC, Invesco, ITI, Mahindra Manulife, PGIM, Sundaram, UTI, Union, quant | open | no |
+
+**Three fund houses were already closed to lumpsum going into February 2024.
+Four acted inside the window. Seventeen did nothing at all.**
+
+### 🔴 Finding 1 — the intervention produced almost no new restrictions
+
+Of 24 fund houses facing the same SEBI/AMFI communication on the same date, **four** changed
+their small-cap subscription terms in the following month. Two of those four were already
+restricted and merely tightened.
+
+**Genuinely new restrictions: Kotak, ICICI Prudential, Franklin — three of 24.**
+
+### 🔴 Finding 2 — the timing does not support a causal story
+
+| AMC | Effective | vs 13-Mar-2024 trough | vs 27-Feb SEBI email |
+|---|---|---|---|
+| Kotak | 04-Mar-2024 | 9 days **before** | addendum dated **26-Feb — one day before the email** |
+| ICICI Pru | 14-Mar-2024 | 1 day after (cut-off 3pm, 13-Mar) | after |
+| Franklin | 18-Mar-2024 | 5 days after | after |
+| Nippon | 22-Mar-2024 | 9 days after | after |
+
+Kotak's board decided **before the SEBI email existed**. The other three took effect **on or
+after the trough** — they cannot have caused or moderated a drawdown that had already ended.
+
+This is D31 with four confirming cases rather than one. Q2 as originally framed is not
+answerable from these dates.
+
+### 🔴 Finding 3 — the restrictors moved 7 months to 3.5 years BEFORE the mandate
+
+SBI (Sep 2020), Tata (Jul 2023) and Nippon (Jul 2023) all closed lumpsum well ahead of the
+event, citing the small-cap rally and corpus deployment — not any regulatory instruction.
+The regulator's intervention largely landed on fund houses that had already acted or would
+not act at all.
+
+### Finding 4 — fund size does NOT sort the groups (hypothesis tested and rejected)
+
+Raised repeatedly during the sweep as the obvious confounder. It does not hold:
+
+- **HDFC** (~₹25,000–28,000 cr, among the two largest small-cap schemes) — **stayed open**
+- **quant** (~₹2,000 cr → ₹17,000 cr across 2023, the fastest growth in the industry) — **stayed open**
+- **Canara Robeco** (~₹7,800 cr, +40% 1-yr return) — **stayed open**
+- **ICICI Pru** (~₹7,000 cr) — **suspended lumpsum entirely**
+- **Kotak** (~₹14,500 cr) — capped
+
+Record as a checked-and-rejected confounder, not an open question.
+
+### Finding 5 — restriction is not binary; it is a state with several dimensions
+
+Lumpsum status and SIP cap move independently, and severity ranges enormously:
+
+| | Lumpsum | Fresh SIP/STP cap |
+|---|---|---|
+| SBI | closed | ₹25,000/**month** |
+| Tata | closed | **uncapped** |
+| Nippon (from 22-Mar) | closed | ₹50,000/**day** |
+| ICICI Pru (from 14-Mar) | suspended | ₹2,00,000/month |
+| Kotak (from 04-Mar) | ₹2,00,000/month | ₹25,000/month |
+| Franklin (from 18-Mar) | ₹2,00,000/month | ₹50,000/month |
+| Axis | ₹1 crore/**day** | included in the same cap |
+
+⚠️ **Unit trap: SBI and Kotak are per MONTH, Nippon and Axis per DAY.** ₹25,000/month vs
+₹50,000/day is a ~60× difference annually, not 2×. **The table must store the unit**, or any
+comparison silently breaks.
+
+⚠️ **Axis is the hard case.** A ₹1 crore/day cap binds no retail investor. Coding it
+`restricted` would put it alongside Tata, which accepted zero lumpsum. See D32.
+
+### Finding 6 — fund houses loosen during crashes and tighten during rallies
+
+The opposite of what "restriction protects investors in a fall" would predict:
+
+- **SBI** removed SIP/STP restrictions 08-May-2020, mid-COVID crash; re-imposed 08-Sep-2020 as
+  markets recovered; **raised** the cap ₹5,000 → ₹25,000 in Feb 2021
+- **DSP** was closed 2017–2020 and **fully reopened 01-Apr-2020**, at the COVID bottom
+- **Axis** cut its cap ₹2 cr → ₹5 lakh on 11-Mar-2020, then **raised it to ₹1 cr three weeks
+  later** on 01-Apr-2020
+- Business Standard (Feb 2020) reports limits were **relaxed during the 2018 correction**
+
+Restrictions are a **valuation/capacity tool**, not a crash-protection tool. This matters for
+how the finding is framed.
+
+### Finding 7 — the parameters look coordinated, not independent
+
+| | Lumpsum cap | SIP cap | Breach handling |
+|---|---|---|---|
+| Kotak (04-Mar) | ₹2,00,000/mo | ₹25,000/mo | rejected in full, no partial |
+| Franklin (18-Mar) | ₹2,00,000/mo | ₹50,000/mo | rejected in full, no partial |
+| ICICI Pru (14-Mar) | suspended | ₹2,00,000/mo | rejected in full, no partial |
+
+Kotak and SBI share an identical ₹25,000/month SIP cap **with identical per-frequency
+breakdowns** (₹1,250 daily / ₹6,250 weekly / ₹75,000 quarterly), word for word, four years apart.
+Nippon and Motilal Oswal revised small-cap exit load to 1%-within-1-year in the same week.
+
+⚠️ **This threatens the independence assumption in difference-in-differences.** See D33.
+
+### Prior restriction history is widespread, not a Nippon quirk
+
+| AMC | Prior episode | Outcome |
+|---|---|---|
+| DSP | capped 2014, cut 2016, **closed Feb 2017**, SIP-only Sep 2018 | **fully reopened 01-Apr-2020** |
+| SBI | Mar 2020 notice, restrictions removed 08-May-2020, **re-imposed 08-Sep-2020** | still closed |
+| Axis | ₹2 cr (Jan 2020) → ₹5 L (Mar 2020) → ₹1 cr (Apr 2020) → ₹5 L (Oct 2021) → ₹1 cr (May 2023) | ₹1 cr, nominal |
+| PGIM | ₹10 L cap eff. 02-Aug-2021 (No. 15 of 2021-22) | **withdrawn eff. 01-Sep-2021** (No. 18) |
+| Edelweiss | capped Recently Listed IPO Fund at ₹1 L/day/PAN, Jan 2022 | different scheme |
+| Nippon | ⚠️ see correction below | |
+
+**DSP, PGIM and Edelweiss are the strongest controls in the table** — fund houses that have
+demonstrably used the mechanism and chose not to in 2024.
+
+### 🔴 CORRECTION — Nippon's July 2023 restriction was NOT its first
+
+Business Standard, **16 Feb 2020**: Nippon India Small Cap Fund had *already* barred lumpsum
+and capped SIP/STP at **₹5 lakh monthly instalments**. There is therefore an earlier restriction
+and an unlocated reopening between 2020 and July 2023.
+
+Part 14's timeline starting at 07-Jul-2023 is **incomplete**. The widely repeated line that
+Nippon "first placed restrictions in July 2023" — including in Business Standard's own March
+2024 coverage — is wrong.
+
+Does not change the Feb 2024 state or the analysis. Does mean the Nippon pre-history is deeper
+than recorded.
+
+### Dating the July 2023 wave precisely
+
+Business Standard, **08 Jun 2023**, on HDFC Defence Fund: small-cap subscription restrictions
+were then in force at **SBI Small Cap Fund and Mirae Asset Emerging Bluechip Fund** — and no
+others named. Tata restricted 01-Jul-2023 and Nippon 07-Jul-2023.
+
+So as of early June 2023, SBI was the only restricted major small-cap fund. The July 2023 wave
+began immediately after.
+
+### Archive structures — practical notes for any future sweep
+
+**No two AMCs are alike.** There is no generic path, no generic numbering, no predictable
+filename anywhere.
+
+**Working URLs (verified 27–29 Aug 2026):**
+
+| AMC | Addenda page |
+|---|---|
+| Nippon | `/investor-service/quick-links/notice-addendum` (**not** `/downloads/` — stale, ends 2022) |
+| Tata | `tatamutualfund.com/notice-addendum/tmf` (JS-rendered; `/cams` is a different list) |
+| SBI | `sbimf.com/notice-and-addendums` (type filter: **Scheme Information**; date range from 2020) |
+| Kotak | addenda under `/Information/forms-and-downloads/`, **separate from** the Notices accordion on `/Information/statutory-disclosure` |
+| ABSL | `mutualfund.adityabirlacapital.com/forms-and-downloads/addendums` |
+| Axis | `axismf.com/statutory-disclosures` → section 6 |
+| Bandhan | `bandhanmutual.com/downloads/addendums` |
+| BOI | `boimf.in` → Regulatory Updates; PDFs at `/docs/default-source/reports/addenda-notice/` |
+| Baroda BNP | `barodabnpparibasmf.in/downloads/notice-cum-addenda` |
+| Canara Robeco | `canararobeco.com/forms-downloads/notice-cum-addendum` (F.Y. filter) |
+| DSP | `dspim.com/downloads?category=Notices and Addendum&sub_category=Addendum` |
+| Edelweiss | `edelweissmf.com/downloads/notice-cum-addendum` (**two** sections: Notice Cum Addendum *and* Notices) |
+| Franklin | `franklintempletonindia.com/downloads/updates` |
+| HDFC | `hdfcfund.com/statutory-disclosure/form-disclosures/addenda-notices` |
+| HSBC | `assetmanagement.hsbc.co.in` → Downloads → **"Notice Ads"** |
+| ICICI Pru | `icicipruamc.com/media-center/announcements` (⚠️ `archive.icicipruamc.com` is **dead**) |
+| Invesco | `invescomutualfund.com/literature-and-form?tab=Addendums` |
+| ITI | `itiamc.com/downloads` |
+| Mahindra Manulife | `mahindramanulife.com/downloads#mandatory-disclosures` |
+| PGIM | `pgimindia.com/mutual-funds/disclosures` → Addenda & Notices (⚠️ `pgimindiamf.idealake.com` is **dead**) |
+| Sundaram | `sundarammutual.com/addendum-notice` |
+| UTI | `utimf.com/downloads/addenda-financial-year` |
+| Union | `unionmf.com/about-us/downloads` → SID/SAI/Addendum (⚠️ `/downloads/addendumsnotices.aspx` is the **old dead site**) |
+| quant | `quantmutual.com/downloads/addendum` (year selector, 2008–present) |
+
+**Numbering conventions — four different systems:**
+- **Financial year**, continuous: BOI (`12/2023-24`), Axis (`43/2020-21`), PGIM (`No. 15 of 2021-22`)
+- **Calendar year**: Baroda BNP (`68/2026`), Mahindra Manulife (`16/2025`)
+- **Calendar MONTH**: ICICI Pru (`007/03/2024` = 7th addendum of March 2024) — sequence cannot
+  be walked across a year
+- **None at all**: most others
+
+⚠️ Axis numbering resets each financial year — `40` and `43` are **not** adjacent if they sit in
+different FY series. This cost time.
+
+**Scanned PDFs with no text layer:** SBI's 2020–21 addenda are images. Needs OCR or manual
+transcription. Only AMC where this occurred.
+
+### ⚠️ The overseas-fund false positive — hit at FIVE AMCs
+
+Subscription suspensions on **overseas/international schemes** use language nearly identical to
+small-cap restrictions and cluster in the same months, driven by RBI overseas investment limits
+(SEBI email 28-Jan-2022; a separate **AMFI email of 20-Mar-2024**).
+
+Encountered and cleared at:
+
+| AMC | Document | Actually covers |
+|---|---|---|
+| Nippon | Addendum 84, 22-Feb-2024 | US Equity Opportunities, Japan Equity, Taiwan Equity, ETF Hang Seng BeES |
+| ABSL | Addendum 17/2024, 26-Mar-2024 | NASDAQ 100 FOF, US Treasury 1–3yr FoF, US Treasury 3–10yr FoF |
+| ABSL | Addendum 08/2024, 13-Feb-2024 | International Equity Fund (₹1 cr/day/PAN) |
+| HSBC, Invesco, PGIM, Axis, Franklin | various, 2022 & 2024 | overseas FoF schemes |
+
+**ALWAYS read the scheme names.** Nippon's 22-Feb-2024 notice sits five days before the SEBI
+email and would have moved the event date if taken at face value.
+
+⚠️ **Two separate AMFI communications in 2024:** 27-Feb (small/mid cap policy) and 20-Mar
+(overseas limits). Do not conflate them.
+
+### Proof-of-inclusion — how each `not_restricted` was made defensible
+
+An absence in an archive is weak. These are the documents that made the negatives strong:
+
+| AMC | Evidence |
+|---|---|
+| **HDFC** | 🔴 restricted **two other schemes** in-window — Defence Fund (eff. 12-Jun-2023) and NIFTY Realty Index Fund (eff. 08-Apr-2024), both lumpsum-discontinued + SIP-capped. Chose not to for small cap |
+| **ABSL** | 11-Mar-2024 addendum **lowered** minimum SIP to ₹100 across 25 schemes, Small Cap Fund named |
+| **Edelweiss** | 06-Nov-2023 addendum, eff. 10-Nov-2023, minimums cut to ₹100, Small Cap Fund named |
+| **BOI** | 23-Jun-2022 SIP Shield discontinuation names Bank of India Small Cap Fund |
+| **SBI** | Dec-2024 "Discontinuation of Subscription in SBI International Access – US Equity FoF" proves suspensions file in this feed |
+| **Invesco** | SID dated 30-Jun-2024 — post-event, no subscription-limit clause |
+| **Canara Robeco** | KIM dated Nov-2024 — post-event, no subscription-limit clause |
+| **HSBC** | April 2024 fund one-pager — **marketing** material for the small cap fund, published a month after the SEBI email |
+
+⚠️ The ₹100-minimum moves at ABSL, Edelweiss, DSP, Invesco and Sundaram look like an
+**industry-wide shift to micro-ticket investing**, not small-cap-specific intent. Good
+proof-of-inclusion; weak evidence of intent.
+
+### Confidence by row
+
+**High** — archive walked + cross-checked: SBI, Tata, Nippon, Kotak, ICICI Pru, Franklin, ABSL,
+Bandhan, BOI, Baroda BNP, Canara Robeco, DSP, Edelweiss, HDFC, Invesco, ITI, Mahindra Manulife,
+PGIM, Sundaram, Union, quant
+
+**Medium-high** — archive not fully reachable, rests on SID/KIM + third-party + absence from
+reporting: **HSBC** (addenda listing unreachable), **UTI** (partial scan)
+
+**Special**: **Axis** — the 15-May-2023 revision to ₹1 crore is sourced from a **fund PPT**, not
+the addendum; the addendum was not locatable on the Addendums & Notices page. Confidence medium.
+
+### Scheme renames and mergers — six cases for `core.scheme_lineage`
+
+| Now | Previously | When |
+|---|---|---|
+| Bandhan Small Cap Fund | IDFC Small Cap Fund | Bandhan acquired IDFC MF, Jan 2023 |
+| Bank of India Small Cap Fund | BOI AXA Small Cap Fund | Oct 2022 |
+| HSBC Small Cap Fund | L&T Emerging Businesses Fund | HSBC absorbed L&T MF, late 2022 |
+| Union Small Cap Fund | Union Small and Midcap Fund | recategorisation |
+| Baroda BNP Paribas | Baroda MF + BNP Paribas MF merger | 2022 |
+| Sundaram | absorbed Principal Mutual Fund | late 2021 |
+
+Also: **HDFC Small Cap Fund** descends from Morgan Stanley Growth Fund; **Franklin India Smaller
+Companies Fund** appears in some sources as "Franklin India Small Cap Fund".
+
+### ⚠️ Inception dates — two funds cannot support a before-and-after
+
+| AMC | Inception | Pre-period to 29-Feb-2024 |
+|---|---|---|
+| **Baroda BNP Paribas** | **30-Oct-2023** (allotment; NFO opened 06-Oct) | **4 months** — exclude from Q2/Q3 |
+| **Mahindra Manulife** | **12-Dec-2022** | 14 months — usable but thin |
+| PGIM | ~Jul 2021 | ~2.5 years |
+| UTI | Dec 2020 | ~3.2 years |
+| ITI | 14-Feb-2020 (disputed) | ~4 years |
+
+**Run an inception-date filter against `core.schemes` before the analysis.** Any scheme launched
+close to the event has no baseline.
+
+### ⚠️ Do not use Groww for inception dates or scheme AUM
+
+Wrong on **at least six** AMCs in this sweep. It reports **fund-house-level AUM in the scheme
+field** and **predecessor-scheme launch dates**:
+
+| Fund | Groww AUM | Actual | Groww launch | Actual |
+|---|---|---|---|---|
+| Edelweiss Small Cap | ₹1,72,784 cr | ~₹5,481 cr | — | — |
+| Invesco Smallcap | ₹1,60,871 cr | ~₹11,717 cr | 24-Jul-2006 | 30-Oct-2018 |
+| UTI Small Cap | ₹4,04,286 cr | ~₹4,872 cr | — | 22-Dec-2020 |
+| Mahindra Manulife Small Cap | ₹37,713 cr | ~₹5,087 cr | 04-Feb-2016 | 12-Dec-2022 |
+| Union Small Cap | ₹27,363 cr | ~₹2,268 cr | 30-Dec-2009 | 10-Jun-2014 |
+| quant Small Cap | ₹1,03,143 cr | ~₹30,000 cr | 15-Apr-1996 | — |
+| HSBC Small Cap | ₹1,51,232 cr | — | 27-May-2002 | (L&T predecessor) |
+
+**Use `core.schemes` and AMFI. Value Research and MySIPonline were reliable throughout.**
+
+### Structural facts for the restriction table schema
+
+- **One addendum can carry several restriction types** with one effective date
+  (Nippon no. 94: exit load *and* SIP cap; Kotak 26-Feb: lumpsum *and* SIP caps)
+- **A corrigendum can supersede a clause the same day** (Nippon, 06-Jul-2023)
+- **One change can require two addenda** — DSP filed separate SID and KIM amendments on
+  25-Mar-2020 for the same reopening. **Document count ≠ event count**
+- **A restriction can be partially modified** — ICICI restored Freedom SIP on 05-Jul-2024
+  while everything else stayed suspended
+- **Publication date ≠ effective date**, routinely: Tata 26-Jun → 01-Jul-2023 (5 days),
+  Kotak 26-Feb → 04-Mar-2024 (7 days), ICICI 12-Mar → 14-Mar-2024
+- Nippon and Franklin both use "shall **continue** with a limit of Rs X" while **changing** the
+  number. **Compare the numbers, not the verbs**
+
+### Full restriction lifecycles — the two most analytically useful rows
+
+**Kotak** — the only complete open→closed→open cycle inside the window:
+- eff. 04-Mar-2024: lumpsum ₹2,00,000/mo, SIP/STP ₹25,000/mo
+- eff. 02-Jul-2024: **all limits removed**, fully reopened
+
+**ICICI Prudential** — imposed, partially relaxed, fully lifted:
+- eff. 14-Mar-2024 (No. 007/03/2024): lumpsum + switch-in **suspended**, SIP/STP ₹2 L/mo,
+  special products withdrawn. Also covered **ICICI Prudential Midcap Fund** — the only
+  midcap restriction in the sweep
+- eff. 05-Jul-2024 (No. 003/07/2024): Freedom SIP restored, monthly only
+- eff. 23-Jan-2026 (No. 009/01/2026): **all restrictions withdrawn** — 22 months closed.
+  ⚠️ this final addendum names **only** the Smallcap Fund; midcap status unverified
+
+ICICI is also the only AMC to state a **reopening condition** in the original addendum: lumpsum
+may be accepted "when in its assessment the valuations become attractive."

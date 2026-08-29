@@ -608,8 +608,16 @@ Nippon's fresh lumpsum subscriptions and switch-ins were suspended **continuousl
 before-and-after for Nippon on the main mechanism. A binary treated/control split would code as
 "treated in March 2024" a fund house that had been closed for eight months.
 
-Options 2, 3 and 4 remain live. **Still cannot choose between them** until the sweep shows how
-many of the 24 were already restricted going into February 2024.
+**UPDATE 29 Aug 2026 — the sweep is complete (NOTES Part 15). Option 4 is now preferred.**
+Three of 24 were already closed to lumpsum going into Feb 2024 (SBI since Sep 2020, Tata and
+Nippon since Jul 2023). Prior restriction history is widespread, not rare: DSP, Axis, PGIM,
+Edelweiss and SBI all have documented episodes, and DSP/PGIM/Edelweiss deliberately reopened
+before the event.
+
+**Option 4 — dating treatment from each AMC's operative restriction — fits the data.** Option 3
+(first-time restrictors only) would leave a treated group of three: Kotak, ICICI Pru, Franklin.
+That is defensible but small. Option 2 (a covariate flag) is compatible with either and should
+be carried regardless.
 
 ⚠️ **The question has sharpened.** It is no longer "have they ever restricted before" but
 **"was a restriction in force during the correction."** Those are different: an AMC that
@@ -706,6 +714,111 @@ March, Q2 survives. If most look like Nippon, it does not.
 
 ---
 
+## D32 — Restriction severity is a state, not a label (29 Aug 2026)
+
+**Decision.** `core.amc_restriction` stores the **state** of each dimension, and any binary
+treated/control flag is **derived** from it at query time against a stated threshold — never
+assigned by hand, row by row.
+
+**Why.** The sweep produced a severity range that no single label survives:
+
+| | Lumpsum | Fresh SIP/STP cap |
+|---|---|---|
+| Tata | closed | **uncapped** |
+| SBI | closed | ₹25,000/month |
+| Nippon (22-Mar-24) | closed | ₹50,000/**day** |
+| ICICI Pru (14-Mar-24) | suspended | ₹2,00,000/month |
+| Kotak (04-Mar-24) | ₹2,00,000/month | ₹25,000/month |
+| Franklin (18-Mar-24) | ₹2,00,000/month | ₹50,000/month |
+| **Axis** | **₹1 crore/day** | same cap, cumulative |
+
+**Axis forces the issue.** A ₹1 crore/day cap constrains no retail investor. Coding it
+`restricted` puts it beside Tata, which accepted zero lumpsum — an incoherent treated group.
+Coding it `not_restricted` ignores a subscription limit that genuinely exists in the SID.
+
+**Columns required:** `lumpsum_status` (open / capped / suspended), `lumpsum_cap_value`,
+`lumpsum_cap_unit`, `sip_cap_value`, `sip_cap_unit`, `exit_load_terms`.
+
+⚠️ **The unit column is mandatory, not optional.** SBI ₹25,000/**month** vs Nippon
+₹50,000/**day** is ~60× annually. A bare number silently breaks every comparison.
+
+**The threshold must be stated out loud and defended**, e.g. "a lumpsum cap above ₹10 lakh/day
+does not meaningfully constrain retail flows." The number matters less than having declared one
+rather than exercising undocumented judgement 24 times.
+
+**Note also:** Axis's cap is **cumulative across lumpsum and SIP together**. Every other AMC
+capped them separately. The schema must tolerate that.
+
+---
+
+## D33 — 🔴 OPEN: restriction parameters look coordinated (29 Aug 2026)
+
+**Problem, not yet a decision.** Difference-in-differences assumes treatment assignment is
+independent across units. The sweep suggests it may not have been.
+
+**Evidence:**
+- Kotak (04-Mar) and Franklin (18-Mar): identical ₹2,00,000/month lumpsum cap, identical
+  "completely rejected — partial amount will not be accepted" language, identical carve-outs
+  for pre-existing SIP/STP and dividend-reinvestment unitholders
+- Kotak (2024) and SBI (2021): identical ₹25,000/month SIP cap with identical per-frequency
+  breakdown — ₹1,250 daily, ₹6,250 weekly, ₹75,000 quarterly — four years apart
+- Nippon and Motilal Oswal: identical exit-load revision to 1%-within-1-year, same week
+- ICICI Pru and Franklin: the same stated rationale, "protect investors from sudden market
+  movements," four days apart
+
+**Reading:** plausibly a shared template circulated through AMFI, rather than 24 independent
+decisions.
+
+**This does not invalidate the design**, but it must be stated. An interviewer who knows the
+industry will raise it, and "I noticed and addressed it" is a much better answer than being
+told.
+
+**Options:** (a) state it as a limitation in the README; (b) treat the treated group as a single
+correlated cluster rather than independent units; (c) lean on the *timing* variation — Kotak
+04-Mar vs Nippon 22-Mar — which is harder to explain by a common template.
+
+⚠️ Do not resolve until the analysis is drafted.
+
+---
+
+## D34 — The headline question has changed (29 Aug 2026)
+
+**Decision.** The project's stated question shifts from *"did restricting inflows help?"* to
+what the evidence actually supports.
+
+**Why.** The sweep (NOTES Part 15) establishes three things the original framing cannot survive:
+
+1. **Only three of 24 fund houses imposed a genuinely new restriction** in response to the
+   mandate — Kotak, ICICI Pru, Franklin. Nippon merely tightened an existing one
+2. **The timing rules out causation for the drawdown.** Kotak's board decided 26-Feb, one day
+   *before* the SEBI email. ICICI (14-Mar), Franklin (18-Mar) and Nippon (22-Mar) all took
+   effect **on or after the 13-Mar trough**
+3. **The fund houses that did close moved 7 months to 3.5 years earlier**, citing the rally and
+   corpus deployment, not any regulator
+
+**The defensible question becomes something like:** *how did Indian AMCs actually respond to the
+February 2024 SEBI/AMFI communication on small-cap funds, and what does the timing of their
+restrictions show about whether the intervention shaped behaviour?*
+
+**Answer, supported by primary documents:** it largely did not. The regulator's intervention
+landed on a segment where the most exposed fund houses had already acted years earlier, and the
+few restrictions that followed took effect after the correction had bottomed.
+
+**This is a better project than the original.** It is a finding rather than a null result, it is
+fully primary-sourced across 24 fund houses, and it is defensible line by line in an interview.
+
+**Consequences:**
+- **Q2 (drawdown by treatment group) is not answerable as written** — see D31. Fold it into the
+  timing finding instead
+- **Q1 (flows) and Q3 (recovery) remain live** and now have a proper treated/control split
+- Kotak and ICICI Pru are the analytically richest rows: both have a documented open → closed →
+  open cycle, Kotak within four months, ICICI across 22
+- **Fund size is a checked-and-rejected confounder** (Part 15, Finding 4) — state it as tested,
+  not as an open worry
+
+
+---
+
 ## OPEN / PENDING DECISIONS
 
 - [x] **Is the historical stress test archive retrievable?** → **RESOLVED 17 Aug 2026: YES.**
@@ -715,8 +828,20 @@ March, Q2 survives. If most look like Nippon, it does not.
 - [ ] Do the other 23 AMCs archive back far enough, and do they run a stale page alongside a
       current one as Nippon does? ⚠️ **URLs are NOT predictable — Nippon's addendum filenames have
       no pattern at all. Harvest hrefs; never construct them** (NOTES Part 14)
-- [ ] 🔴 **Effective-date distribution across the 24** — resolves D31
-- [ ] 🔴 **How many of the 24 were already restricted on 1 Feb 2024** — resolves D29
+- [x] 🔴 **Effective-date distribution across the 24** → **DONE** (Part 15). Four acted:
+      Kotak 04-Mar, ICICI Pru 14-Mar, Franklin 18-Mar, Nippon 22-Mar. Three of four post-date the
+      13-Mar trough. **D31 resolved toward option 4** — state the limitation as a finding
+- [x] 🔴 **How many of the 24 were already restricted on 1 Feb 2024** → **THREE** — SBI
+      (Sep 2020), Tata (Jul 2023), Nippon (Jul 2023), plus Axis on a nominal ₹1 cr/day cap.
+      D29 updated
+- [ ] 🔴 Locate Nippon's pre-2023 restriction and its reopening — Business Standard
+      (16-Feb-2020) shows lumpsum already barred and SIP capped at ₹5 lakh/month. Part 14's
+      timeline is incomplete
+- [ ] Axis 15-May-2023 revision to ₹1 crore/day is **PPT-sourced**, not from the addendum.
+      Locate the addendum or take the SID
+- [ ] Set and document the severity threshold that derives the binary treated flag — D32
+- [ ] Run the inception-date filter against `core.schemes`: Baroda BNP (30-Oct-2023) has only
+      4 months of pre-period and likely cannot enter Q2/Q3
 - [ ] Final treated/control group definition for the small-cap analysis
 - [ ] Whether to treat 27 Feb (behavioural) and 15 Mar (disclosure) as separate events in the design
 - [ ] Which 2–3 independently verifiable events to use for validating the reconciliation engine
