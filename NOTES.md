@@ -1832,3 +1832,188 @@ field** and **predecessor-scheme launch dates**:
 
 ICICI is also the only AMC to state a **reopening condition** in the original addendum: lumpsum
 may be accepted "when in its assessment the valuations become attractive."
+
+---
+
+## PART 16 — STUDY UNIVERSE, RESTRICTION TABLE, AND Q2 ANSWERED (1 September 2026)
+
+### The name-matching problem, quantified
+
+Matching `core.schemes.scheme_name` for small cap variants returns **297 rows**. Adding a filter
+for codes with NAV rows in 2023–2025 cuts it to **210**. The target is 24.
+
+What the 210 contains besides the 24: Nifty Smallcap 250/50 index funds and ETFs from nearly
+every fund house, eight AMCs outside the universe (Groww, JM, LIC MF, Mirae, Motilal Oswal,
+Quantum, TRUSTMF, IDBI), the Sundaram Emerging Small Cap Series I–VII, and Bank of India's
+Mid & Small Cap Equity & Debt hybrid.
+
+**All 24 fund houses were present** — recall was 100%, precision about 11%. The earlier
+expectation that name-matching would miss several was wrong; the problem is the opposite.
+
+### 🔴 Ten naming conventions for one concept
+
+Across 24 funds the archive writes "Direct plan, Growth option" as: `Direct Plan - Growth`,
+`Growth - Direct Plan`, `DIRECT PLAN GROWTH`, `Direct Plan Growth`, `Growth Option - Direct
+Plan`, `Direct Growth`, `Growth - Direct`, `Direct-Plan-Growth`, `Direct Plan- Growth Option`,
+and `Direct Plan Growth Plan - Growth Option`.
+
+**No filter separates them reliably, and a wrong filter returns 24 rows too.** That is the
+argument for the curated table: the pattern generates candidates, a human picks.
+
+Specific traps found:
+
+| Trap | Detail |
+|---|---|
+| **Nippon Bonus option** | `118777` Bonus sits beside `118778` Growth; both names contain "Direct Plan Growth Plan". A filter on `%direct%` AND `%growth%` returns **both** |
+| **quant vs QUANTUM** | `120828` quant, `152107` QUANTUM — different fund houses |
+| **Kotak** | `Kotak-Small Cap Fund` — hyphen, no space. "Kotak Small Cap" matches nothing |
+| **Franklin** | Direct is `118525`; `103360` carries a similar name but is Regular |
+| **BOI** | Also runs Mid & Small Cap Equity & Debt Fund, a hybrid |
+| **Sundaram** | Open-ended fund shares a name stem with closed-ended Emerging and Select series |
+
+### ⚠️ The archive's names are current, the addenda's names are historical
+
+`103360` is labelled **Franklin India Small Cap Fund** in the archive, while the March 2024
+addendum says **Smaller Companies Fund**. The fund was renamed *after* the filing and the
+archive rewrote the name against the existing code.
+
+So matching addendum text against archive text fails for any fund renamed in between, silently.
+`study_universe.scheme_name` stores the archive name as verified, deliberately **not** as a
+foreign key.
+
+### `core.schemes` has two columns only
+
+`scheme_code` and `scheme_name`. No AMC, no category, no plan, no option, no inception date, no
+active flag. Everything must be derived from the name string or from NAV coverage.
+
+### The verified 24
+
+| AMC | Code | AMC | Code |
+|---|---|---|---|
+| absl | 119556 | invesco | 145137 |
+| axis | 125354 | iti | 147919 |
+| bandhan | 147946 | kotak | 120164 |
+| boi | 145678 | mahindra | 150915 |
+| barodabnp | 152128 | nippon | 118778 |
+| canara | 146130 | pgim | 149019 |
+| dsp | 119212 | sbi | 125497 |
+| edelweiss | 146196 | sundaram | 119589 |
+| franklin | 118525 | tata | 145206 |
+| hdfc | 130503 | uti | 148618 |
+| hsbc | 151130 | union | 129649 |
+| icici | 120591 | quant | 120828 |
+
+### NAV coverage — the slice, not the funds
+
+`MIN(nav_date)` is **2022-01-03** for 21 of 24 funds. That is the first trading day of the
+loaded slice, **not** an inception date. The full 36.7M-row archive back to 2006 is still
+unloaded.
+
+Three funds start later, and those dates are real:
+
+| AMC | First NAV | Rows | Meaning |
+|---|---|---|---|
+| hsbc | 2022-11-28 | 911 | L&T merger — scheme recoded, not launched |
+| mahindra | 2022-12-14 | 899 | inception 12-Dec-2022 |
+| barodabnp | **2023-11-01** | **682** | allotment 30-Oct-2023 — **4 months of pre-period** |
+
+Row counts of ~1,133 over 4.6 years ≈ 246/year, a normal Indian trading calendar. No gaps.
+All 24 run to 2026-08-14.
+
+**Usable pre-period is Jan 2022 – Feb 2024, about 26 months.** See D36.
+
+### Postgres gotchas hit during the build
+
+- **`nav.date` is `nav_date` in Postgres**, not `date` as in the SQLite source. First divergence
+  between the two schemas
+- **`ROUND(double precision, integer)` does not exist.** Two-argument `ROUND` is numeric-only.
+  Cast the whole expression: `ROUND((expr)::numeric, 2)`. Same class as `MONTH()` vs `EXTRACT()`
+- **`UNIQUE KEY` is MySQL.** Postgres wants `UNIQUE`
+- **`DISTINCT ON` and `MAX()` are alternatives, not partners.** `DISTINCT ON` returns the whole
+  row associated with an extreme value, which `MAX()` cannot
+- **A LEFT JOIN date filter must sit in `ON`, not `WHERE`.** In `WHERE` it discards unmatched
+  rows and silently reduces the join to an inner one
+- A **schema created by `ALTER DATABASE ... SET search_path`** takes effect on the next
+  connection, not the current one
+
+---
+
+## 🔴 Q2 ANSWERED — DRAWDOWN BY FUND
+
+### Every fund troughed on 13 March 2024
+
+**All 24. Not one exception.** Different portfolios, concentrations and cash positions; the
+bottom did not move by a single day. This was one market-wide event, not 24 fund-specific ones.
+
+### Peaks were NOT synchronised
+
+Fifteen funds peaked **6–7 February 2024**, three weeks before the regulatory communication.
+Nine peaked **23–27 February** — DSP on the 26th; Franklin, ICICI, SBI and PGIM on the 27th,
+the day of the SEBI email itself, still making highs as the regulator acted.
+
+### The full result
+
+| Rank | AMC | Lumpsum state | Peak | Drawdown |
+|---|---|---|---|---|
+| 1 | barodabnp | open | 06-Feb | **−11.30%** |
+| 2 | union | open | 07-Feb | −11.16% |
+| 3 | hsbc | open | 07-Feb | −11.03% |
+| 4 | quant | open | 23-Feb | −11.02% |
+| 5 | **tata** | **suspended** | 26-Feb | **−10.75%** |
+| 6 | uti | open | 07-Feb | −10.50% |
+| 7 | mahindra | open | 06-Feb | −10.31% |
+| 8 | bandhan | open | 07-Feb | −10.30% |
+| 9 | invesco | open | 07-Feb | −10.03% |
+| 10 | boi | open | 07-Feb | −10.00% |
+| 11 | dsp | open (prev. restricted) | 26-Feb | −9.77% |
+| 12 | iti | open | 23-Feb | −9.73% |
+| 13 | canara | open | 07-Feb | −9.28% |
+| 14 | absl | open | 07-Feb | −9.22% |
+| 15 | hdfc | open | 06-Feb | −9.16% |
+| 16 | edelweiss | open | 07-Feb | −8.87% |
+| 17 | **axis** | **capped (nominal)** | 07-Feb | −8.58% |
+| 18 | sundaram | open | 07-Feb | −8.58% |
+| 19 | pgim | open (prev. restricted) | 27-Feb | −8.57% |
+| 20 | **nippon** | **suspended** | 07-Feb | −8.38% |
+| 21 | franklin | open | 27-Feb | −8.17% |
+| 22 | kotak | open | 07-Feb | −7.94% |
+| 23 | icici | open | 27-Feb | −7.91% |
+| 24 | **sbi** | **suspended** | 27-Feb | **−6.17%** |
+
+### 🔴 Restriction status does NOT sort the drawdowns
+
+The three funds closed to lumpsum on the event date rank **1st, 5th and 20th of 24**:
+
+- **SBI −6.17%** — the shallowest fall in the entire universe, and the most heavily restricted
+  fund (closed since 2020, SIP capped at ₹25,000/month)
+- **Nippon −8.38%** — 20th, in the shallow half
+- **Tata −10.75%** — 5th deepest, also closed to lumpsum
+
+The treated group spans nearly the full range of the control group. The whole distribution is
+only 5.1 percentage points wide, −6.17% to −11.30%.
+
+**With n=3 treated, no group effect could be established even if one existed.** The honest
+statement is that restriction status does not explain the variation — which is consistent with
+the timing finding in Part 15: three of the four in-window restrictions took effect *after* the
+13 March trough.
+
+### 🔬 Untested — peak date may matter more than restriction status
+
+The shallowest falls cluster among funds that peaked **latest**. Of the six shallowest
+(sundaram, pgim, nippon, franklin, kotak, icici), four peaked 26–27 February. Of the ten
+deepest, seven peaked 6–7 February.
+
+Counterintuitive: a fund that peaked later had less time to fall *and* fell less. Suggests
+portfolio composition — which small caps rolled over when — rather than subscription policy.
+
+**Testable directly from the existing view.** Correlate `peak_date` against `drawdown_pct`.
+
+### ⚠️ The peak window bound is a judgement, and the first attempt got it wrong
+
+An initial run searched peaks over 01-Jan to 30-Apr-2024 and returned **30 April as the peak
+date for 23 of 24 funds** — every fund had recovered past its pre-event high by then.
+
+That is itself a finding: **the correction was fully retraced within roughly seven weeks.**
+
+The peak window was cut to end **29 February**. A fund peaking in early March would be clipped;
+none was — the latest peak is 27 February. State the bound; do not hide it.

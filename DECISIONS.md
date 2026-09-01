@@ -819,6 +819,99 @@ fully primary-sourced across 24 fund houses, and it is defensible line by line i
 
 ---
 
+## D35 — One curated scheme code per fund house, chosen by hand (1 Sep 2026)
+
+**Decision.** `core.study_universe` holds exactly one AMFI scheme code per fund house, selected
+by reading candidates rather than by filtering. The chosen code is always the **Direct plan,
+Growth option**.
+
+**Why Direct Growth.** Direct carries no distribution commission, so returns are not dragged by
+a fee that varies between fund houses. Growth pays no income distribution, so every NAV move is
+a market move — an IDCW option's NAV falls on each payout, which a drawdown calculation cannot
+distinguish from a loss.
+
+The Direct/Regular expense difference is ~0.5–1% a year, about 0.05% over a one-month drawdown
+— immaterial next to a 13% fall. The choice matters for **consistency**, not magnitude. Applied
+uniformly to all 24.
+
+**Why by hand and not by filter.** Name matching returns 210 rows over the study window for 24
+target funds. Across those 24 the archive uses **ten different conventions** for "Direct plan,
+Growth option" (NOTES Part 16). No pattern separates them, and — the decisive point —
+**a wrong filter returns 24 rows too**. Nothing errors when the wrong 24 come back.
+
+At n=24 the risk of automation exceeds the cost of reading. The pattern generates candidates;
+a person picks.
+
+**Verification:** all 24 codes accepted by the foreign key to `core.schemes`; all 24 return NAV
+rows; the five known traps (Nippon Bonus, quant/QUANTUM, Franklin Regular, BOI hybrid, Sundaram
+closed-ended series) were checked individually.
+
+⚠️ **`scheme_name` is stored but is NOT a foreign key.** Names change while codes do not —
+Franklin's fund was renamed after the March 2024 filing and the archive now shows the new name
+against the old code. The stored copy records what was verified, on the date it was verified.
+
+---
+
+## D36 — The 26-month pre-period is sufficient; the full archive stays unloaded (1 Sep 2026)
+
+**Decision.** Keep the Jan 2022 – present slice (8.93M rows). Do not load the full 36.7M-row
+archive back to 2006.
+
+**Why.** The loaded slice gives ~26 months of pre-event history for 21 of 24 funds. The event
+study needs a baseline before February 2024, not a decade of it. The full load costs disk and
+time and buys history the analysis will not reach.
+
+⚠️ **This was an accident of what happened to be loaded in August; it is now a decision with a
+reason.** Recorded so it does not look like an oversight.
+
+**Three funds have shorter histories**, and the constraint is real:
+
+| AMC | First NAV | Pre-period | Consequence |
+|---|---|---|---|
+| barodabnp | 2023-11-01 | **4 months** | **Exclude from any before/after comparison** |
+| mahindra | 2022-12-14 | 14 months | Thin but usable |
+| hsbc | 2022-11-28 | 15 months | L&T merger recode, not an inception |
+
+**Revisit if** a longer baseline becomes necessary — for instance to compare 2024 against the
+2018 or 2020 corrections.
+
+---
+
+## D37 — 🔴 Q2 is answered, and the answer is negative (1 Sep 2026)
+
+**Finding.** Restriction status does not explain the drawdowns. See NOTES Part 16.
+
+The three funds closed to lumpsum on 29 February 2024 rank **1st, 5th and 20th of 24** by depth
+of fall. SBI, the most heavily restricted fund in the universe, fell least (−6.17%). Tata, also
+closed to lumpsum, was 5th deepest (−10.75%). The full range across all 24 is 5.1 percentage
+points.
+
+**All 24 funds troughed on 13 March 2024**, without exception.
+
+**Decision: report this as a result, not as a failed analysis.**
+
+Three reasons it is a finding rather than an absence:
+
+1. It is **consistent with the timing evidence** — three of the four in-window restrictions took
+   effect on or after the trough (D31, Part 15). A restriction that post-dates the fall cannot
+   moderate it, and the drawdowns confirm none did
+2. The **simultaneity of the trough** is itself informative: portfolio differences did not shift
+   the bottom by one day, which bounds how much fund-level policy could plausibly have mattered
+3. **n=3 treated could not establish a group effect even if one existed.** Stating that openly
+   is stronger than implying a test was run that could have failed
+
+⚠️ **Do not reframe Q2 to manufacture a positive result.** The temptation is to slice by
+severity, or by SIP cap, or to drop Tata as an outlier until the remaining two look shallow.
+Each of those is a defensible choice made for an indefensible reason. The distribution is 5
+points wide and the treated funds are scattered through it.
+
+**Follow-up worth running:** peak date correlates with drawdown more visibly than restriction
+status does. Funds peaking 26–27 February fell less than those peaking 6–7 February. Testable
+from `analysis.drawdown_by_fund` as it stands — see Part 16.
+
+
+---
+
 ## OPEN / PENDING DECISIONS
 
 - [x] **Is the historical stress test archive retrievable?** → **RESOLVED 17 Aug 2026: YES.**

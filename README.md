@@ -4,8 +4,8 @@ A PostgreSQL pipeline over Indian mutual fund data, built to study how asset man
 companies responded to SEBI's small-cap liquidity intervention of February–March 2024.
 
 > **Status: analysis in progress.** The regulatory dataset is complete and primary-sourced
-> across all 24 fund houses in scope. The NAV-based analysis is underway. Findings below are
-> marked verified or hypothesised.
+> across all 24 fund houses in scope. The drawdown analysis is complete; flow decomposition is
+> underway. Findings below are marked verified or hypothesised.
 
 ---
 
@@ -156,12 +156,31 @@ size, and volumes contracted during the correction. By June, with AUM 23% higher
 the figure had fallen back to 26 days. **The stress test measures market conditions at least as
 much as it measures the fund.**
 
+**✅ Verified — every fund bottomed on the same day, and restriction status did not change how
+far it fell.**
+All 24 funds reached their lowest NAV on 13 March 2024 — no exceptions, despite different
+portfolios, concentrations and cash positions. Peak-to-trough falls span just 5.1 percentage
+points, from −6.17% to −11.30%. The three funds closed to lumpsum entering the event rank 1st,
+5th and 20th of 24 by depth: SBI, the most heavily restricted fund in the universe, fell least;
+Tata, also closed, was 5th deepest. **Restriction status does not sort the drawdowns**, which is
+what the timing already implied — three of the four restrictions imposed in the window took
+effect on or after the market had bottomed.
+
+**✅ Verified — the correction was fully retraced within roughly seven weeks.**
+Every fund in the universe exceeded its pre-event high by 30 April 2024.
+
 **✅ Verified — a fund's identity is stable in its code and unstable in its name.**
 Nippon India's mid-cap fund appears in the regulatory disclosure as "Nippon India Growth Fund",
 in the NAV archive as "Nippon India Growth Mid Cap Fund", and in its pre-2019 form as "Reliance
 Growth Fund" — with nine distinct codes across plan and option variants, in three separator
 conventions and two casings. Six fund houses in the study universe renamed or merged during the
 study period. Matching by name fails silently; matching by code does not.
+
+**🔬 Hypothesis — when a fund peaked may matter more than whether it was restricted.**
+Peaks were not synchronised: fifteen funds topped out on 6–7 February 2024, three weeks before
+the regulatory communication, while nine were still making highs as late as 27 February — the
+day of the communication itself. The shallowest falls cluster among the late peakers. This
+points at portfolio composition rather than subscription policy. *Not yet tested.*
 
 **🔬 Hypothesis — the category-level outflow masks large dispersion between fund houses.**
 The small-cap category recorded a ₹94 crore net outflow in March 2024. Nippon's two disclosed
@@ -206,22 +225,25 @@ the filing governs.
 
 ```
 sql/schema/     table, index and constraint definitions
-sql/load/       staging and bulk-load steps
-sql/analysis/   the queries behind the findings above
-data/           the compiled restriction dataset, with source URLs
+sql/load/       seed data and bulk-load steps
+sql/analysis/   the views and queries behind the findings above
 scripts/        data acquisition and orchestration
 ```
 
-The restriction dataset in `data/` carries a source URL for every row, so any figure in this
-README can be traced to the originating filing.
+The regulatory dataset lives in the database rather than in flat files: `core.study_universe`
+holds the 24 scheme codes in scope, and `core.amc_restriction` holds every restriction event
+compiled from the filings. Both are created and populated by the numbered files in `sql/`.
+
+Each restriction row carries the issuing fund house, both dates, the addendum reference where
+the filing has one, and a note recording anything the row alone would not convey.
 
 ---
 
 ## Reproducing this
 
 Raw NAV data is not committed — the repository holds the code that builds the database, not the
-database itself. Third-party PDFs are not redistributed; the restriction dataset carries links
-to each original filing instead.
+database itself. Third-party PDFs are not redistributed; each restriction row identifies its
+source filing by fund house, date and addendum reference.
 
 *Setup instructions to follow once the ingestion layer is complete.*
 
@@ -232,15 +254,27 @@ to each original filing instead.
 **The study universe is the 24 fund houses running an actively managed small-cap scheme**,
 derived from AMFI scheme data rather than chosen by hand.
 
-**Restriction status is recorded three-valued** — restricted, not restricted, or unknown. Where
-a fund house's archive could not be fully verified, the row is marked accordingly rather than
-defaulted into the control group, since doing otherwise would define the control group partly by
-website quality.
+**All 24 archives were verified in full**, so an absence of restriction rows for a fund house
+means a checked negative rather than an unchecked one. Had any archive been unreachable, that
+fund house would have been marked unknown rather than defaulted into the control group — doing
+otherwise would define the control group partly by website quality.
+
+**Only three fund houses were restricted entering the event.** That is too few to establish a
+group effect on the drawdowns, and the analysis says so rather than implying a test was run that
+could have failed. The drawdown result is reported as a negative finding, supported by the
+timing evidence.
 
 **Two schemes cannot support a before-and-after comparison.** Baroda BNP Paribas Small Cap Fund
 launched on 30 October 2023, four months before the event, and Mahindra Manulife's in December
 2022. They appear in the regulatory dataset but are excluded from time-series analysis for want
 of a baseline.
+
+**Scheme codes were selected by hand, not by filter.** Matching scheme names for small cap
+variants returns 210 rows over the study window for 24 target funds, and the archive uses ten
+different conventions for what is the same plan and option. A filter that looks correct returns
+24 rows whether or not they are the right 24, and nothing errors when they are not. The
+selection and the specific cases where a plausible filter picks the wrong row are documented in
+the schema files.
 
 **Restriction parameters appear coordinated rather than independent.** Several fund houses
 adopted identical caps, identical breach-handling language and identical carve-outs within weeks
@@ -253,7 +287,9 @@ stress test disclosures supply monthly AUM, but only for mid and small cap schem
 February 2024. Where a question cannot be answered within those limits, it is documented as a
 limitation rather than estimated around.
 
-**The full NAV archive is loaded** — all 38,107 scheme codes — but scheme names are parsed into a
-clean plan and option hierarchy only for the schemes the analysis touches. The remainder are
+**NAV history is loaded from January 2022 onward**, giving roughly 26 months of pre-event
+baseline. The archive extends to 2006; the earlier depth is not loaded because the event study
+does not reach it. All 38,107 scheme codes are present in the loaded window, but scheme names
+are parsed into a clean plan and option hierarchy only for the schemes the analysis touches. The remainder are
 largely closed-ended fixed maturity plans that matured years before the event studied here. This
 is a scope decision, not an omission.
