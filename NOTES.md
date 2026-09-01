@@ -2017,3 +2017,100 @@ That is itself a finding: **the correction was fully retraced within roughly sev
 
 The peak window was cut to end **29 February**. A fund peaking in early March would be clipped;
 none was — the latest peak is 27 February. State the bound; do not hide it.
+
+---
+
+## PART 17 — Q3 ANSWERED: THE RECOVERY (1 September 2026)
+
+Anchored to the 13 March 2024 trough, which every fund shares. **This is the cleanest
+comparison in the project** — unlike the drawdown columns, which carry a runway artefact from
+the three-week spread in peak dates, all 24 funds start the recovery clock on the same day.
+
+### Every fund recovered
+
+All 24 regained their pre-event high. None failed to. The measure is the first trading day after
+13 March on which NAV reached or exceeded that fund's own February peak.
+
+### 🔴 Two groups, with a clean gap
+
+| Group | n | Days | Recovery date |
+|---|---|---|---|
+| Fast | 20 | **19–28** (most 21–23) | 1–10 April 2024 |
+| **Slow** | **4** | **42–43** | **24–25 April 2024** |
+
+**Nothing falls between 28 and 42 days.** The gap is real, not a tail.
+
+**The slow four: Axis (42), Baroda BNP (42), Union (43), UTI (43).**
+
+### Full result
+
+| AMC | Drawdown | Days | AMC | Drawdown | Days |
+|---|---|---|---|---|---|
+| **sbi** | −6.17% | **19** | absl | −9.22% | 23 |
+| **iti** | −9.73% | **19** | boi | −10.00% | 23 |
+| **nippon** | −8.38% | **20** | hdfc | −9.16% | 23 |
+| edelweiss | −8.87% | 21 | quant | −11.02% | 23 |
+| franklin | −8.17% | 21 | dsp | −9.77% | 28 |
+| kotak | −7.94% | 21 | hsbc | −11.03% | 28 |
+| bandhan | −10.30% | 22 | **axis** | −8.58% | **42** |
+| canara | −9.28% | 22 | **barodabnp** | −11.30% | **42** |
+| icici | −7.91% | 22 | **union** | −11.16% | **43** |
+| invesco | −10.03% | 22 | **uti** | −10.50% | **43** |
+| mahindra | −10.31% | 22 | | | |
+| pgim | −8.57% | 22 | | | |
+| sundaram | −8.58% | 22 | | | |
+| tata | −10.75% | 22 | | | |
+
+### Depth explains part of it, and not most
+
+**Correlation between drawdown and days to recover: r = −0.45** across all 24. Shallower falls do
+return sooner. But **r² ≈ 0.20** — roughly four fifths of the variation in recovery speed is
+unexplained by how far the fund fell.
+
+Among the eight deepest falls, recovery ranges **22 to 43 days**. Depth is not destiny.
+
+### 🔴 Restriction status does not explain recovery either
+
+| AMC | Drawdown (rank) | Days (rank) | Reading |
+|---|---|---|---|
+| SBI | −6.17% (24th, shallowest) | 19 (2nd fastest) | **on the line** |
+| Nippon | −8.38% (20th) | 20 (3rd) | on the line, marginally better |
+| Tata | −10.75% (5th deepest) | 22 (14th) | **above the line** |
+
+**SBI is fast because it fell least, not because it was restricted.** It sits exactly where the
+depth relationship predicts; there is no residual for restriction to explain. This was the
+specific question tested and the answer is clean.
+
+**Tata is the genuine deviation.** It fell as hard as the slow group and recovered with the fast
+one:
+
+| | Drawdown | Days |
+|---|---|---|
+| barodabnp | −11.30% | 42 |
+| union | −11.16% | 43 |
+| **tata** | **−10.75%** | **22** |
+| uti | −10.50% | 43 |
+
+⚠️ **But five unrestricted funds did the same.** quant (−11.02%, 23 days), hsbc (−11.03%, 28),
+mahindra (−10.31%, 22), bandhan (−10.30%, 22), invesco (−10.03%, 22) all fell deeply and
+recovered quickly. Tata is one case among six, not a pattern.
+
+### 🔴 OPEN: what separates the four slow recoverers
+
+Axis, Baroda BNP, Union, UTI. Checked and rejected as explanations:
+
+- **Not depth.** Axis fell −8.58%, 17th of 24 — mid-pack, and tied slowest
+- **Not restriction status.** Three were never restricted; Axis had only the nominal
+  ₹1 crore/day cap
+- **Not peak cluster.** All four peaked early (6–7 February), but so did twelve of the fast group
+- **Not fund age.** Baroda BNP launched Oct 2023, Union in 2014, UTI in 2020, Axis in 2013
+
+Nothing in the current data accounts for it. Candidate explanations that would need the stress
+test files or portfolio data: cash position entering the correction, concentration, or overlap
+in the specific small caps that lagged the rebound.
+
+### Method note
+
+`analysis.recovery_by_fund` depends on `analysis.drawdown_by_fund`, which depends on
+`analysis.fund_state_at_event`. Three levels. Dropping the base view needs CASCADE, and a
+rebuild runs 001, 002, 003 in order.

@@ -912,6 +912,45 @@ from `analysis.drawdown_by_fund` as it stands — see Part 16.
 
 ---
 
+## D38 — 🔴 Q3 is answered; the recovery is the project's cleanest comparison (1 Sep 2026)
+
+**Finding.** All 24 funds regained their pre-event high. Twenty took 19–28 days, four took
+42–43, with no fund in between. See NOTES Part 17.
+
+**Why this measure is better than the drawdown.** Every fund troughed on 13 March 2024, so
+recovery anchored to the trough starts all 24 on the same day. The drawdown columns cannot say
+that: peaks spread across three weeks, so depth flatters late peakers and rate flatters early
+ones, and neither is sound across the full universe (D37, and the header of 002).
+
+**Report recovery as the primary time-series result and the drawdown as supporting.** The
+drawdown is what an investor experienced; the recovery is what compares fairly.
+
+**The restriction hypothesis fails here too, and the test was specific.** SBI recovered second
+fastest — but it also fell least of all 24, and sits exactly on the depth relationship. There is
+no residual for restriction to explain. That question was posed precisely and answered
+cleanly, which is worth more than a vague null.
+
+⚠️ **Tata is the one deviation and should not be overstated.** It fell −10.75% and recovered in
+22 days, while three funds with comparable falls took 42–43. But five unrestricted funds also
+fell deeply and recovered fast. One treated fund among six similar cases is not evidence.
+
+**Do not build a severity index to rescue this.** With three treated funds, no weighting of
+lumpsum status, SIP cap and exit load will produce a defensible result — it will produce a
+number that can be tuned until Tata and SBI look aligned. The honest finding is that neither
+drawdown nor recovery is explained by restriction status.
+
+**New open question, and a real one: the four slow recoverers.** Axis, Baroda BNP, Union, UTI at
+42–43 days against a 19–28 day field. Depth, restriction status, peak cluster and fund age are
+all checked and rejected. This is the most interesting unexplained structure in the data.
+
+Testing it needs data the project does not yet hold — cash position entering the correction,
+portfolio concentration, or holdings overlap. **That is an argument for the stress test harvest**
+(D30), which supplies cash percentage and concentration monthly for exactly these schemes. It is
+now a second reason for that harvest alongside Q1.
+
+
+---
+
 ## OPEN / PENDING DECISIONS
 
 - [x] **Is the historical stress test archive retrievable?** → **RESOLVED 17 Aug 2026: YES.**

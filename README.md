@@ -4,8 +4,8 @@ A PostgreSQL pipeline over Indian mutual fund data, built to study how asset man
 companies responded to SEBI's small-cap liquidity intervention of February–March 2024.
 
 > **Status: analysis in progress.** The regulatory dataset is complete and primary-sourced
-> across all 24 fund houses in scope. The drawdown analysis is complete; flow decomposition is
-> underway. Findings below are marked verified or hypothesised.
+> across all 24 fund houses in scope. The drawdown and recovery analyses are complete; flow
+> decomposition is underway. Findings below are marked verified or hypothesised.
 
 ---
 
@@ -166,8 +166,19 @@ Tata, also closed, was 5th deepest. **Restriction status does not sort the drawd
 what the timing already implied — three of the four restrictions imposed in the window took
 effect on or after the market had bottomed.
 
-**✅ Verified — the correction was fully retraced within roughly seven weeks.**
-Every fund in the universe exceeded its pre-event high by 30 April 2024.
+**✅ Verified — the correction was fully retraced, and recovery split the universe in two.**
+All 24 funds regained their pre-event high. Twenty did so in 19 to 28 days, most within three
+weeks of the trough. **Four took 42 to 43 days — Axis, Baroda BNP Paribas, Union and UTI — with
+no fund falling anywhere between 28 and 42.** The gap is clean, and nothing in the regulatory or
+price data explains it: not how far they fell, not restriction status, not when they peaked, not
+fund age.
+
+**✅ Verified — recovery speed is not explained by restriction status either.**
+SBI recovered second fastest of 24, at 19 days. But it also fell least, and sits exactly where
+the relationship between depth and recovery predicts — there is no residual for restriction to
+account for. Depth itself explains only about a fifth of the variation in recovery speed
+(r = −0.45), so most of what separates a three-week recovery from a six-week one lies outside
+both the price data and the regulatory record.
 
 **✅ Verified — a fund's identity is stable in its code and unstable in its name.**
 Nippon India's mid-cap fund appears in the regulatory disclosure as "Nippon India Growth Fund",
