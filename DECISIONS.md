@@ -951,6 +951,119 @@ now a second reason for that harvest alongside Q1.
 
 ---
 
+## D39 — AMFI's consolidated stress test files replace the per-AMC harvest (3 Sep 2026)
+
+**Decision.** Source the stress test disclosures from **AMFI's own consolidated monthly files**,
+not from each fund house's website.
+
+**Why.** AMFI publishes one file per month covering every AMC — 27 small cap schemes in Feb–May
+2024, 28 from June. All 24 fund houses in the study universe are present in every file.
+
+**Verified identical to the AMC filings.** Nippon's own May 2024 disclosure reports AUM
+₹51,550.68 cr and 27/14 days to liquidate; AMFI's May file reports exactly the same figures for
+that scheme. The consolidated file is the same data, not a summary of it.
+
+This collapses what was scoped as a multi-day per-AMC harvest (D30) into six downloads.
+
+**Scope: February–July 2024 only.** AMFI publishes to the present day. The event window runs
+from the February peak through Kotak's 2 July reopening, so six months covers it with room
+either side. Later files answer different questions and would need parsing work for months the
+analysis never reaches.
+
+⚠️ **The portfolio date column is a month label, not an as-of date.** Every row in the February
+file reads `01-Feb-2024`, March reads `01-Mar-2024`, and so on. The true reference is
+**month-end**, on three independent grounds:
+
+1. Nippon's own May file has metadata showing it was last saved 13 June 2024 — consistent with
+   the AMFI rule that results are published by the 15th based on the preceding month
+2. Press coverage on 15 March 2024 reported Nippon at ~₹46,000 cr and 27 days to liquidate;
+   AMFI's **February** file says 46,029.84 and 27
+3. CRISIL data put Nippon at ₹56,469 cr in June; AMFI's **June** file says 56,471.68
+
+`as_of_date` is therefore derived from the **filename**, and `as_of_source` is set to
+`file_name` rather than `file_column`. The column that exists in the file is deliberately not
+used.
+
+**Recorded as high-confidence inference, not documented fact.** Three lines of evidence agree;
+no document states it outright.
+
+⚠️ **AMFI's own filenames are inconsistent** — some use `February 2024`, others `February_2024`.
+The conversion script accepts either. Third source in this project whose naming is inconsistent
+where consistency would be expected, after the NAV archive's ten plan-and-option conventions and
+the addendum URLs.
+
+---
+
+## D40 — 🔴 Edelweiss filed fractions in Feb and Mar 2024; correct in the view, not at load (3 Sep 2026)
+
+**The defect.** Edelweiss Small Cap Fund's February and March 2024 disclosures report
+percentage fields as **fractions**. Its cap-segment weights sum to roughly 1.0 where every other
+fund's sum to roughly 100.
+
+**Evidence — April is almost exactly 100× March:**
+
+| Field | Feb | Mar | **Apr** | May |
+|---|---|---|---|---|
+| top 10 investor | 0.0167 | 0.027 | **2.71** | 2.69 |
+| mid cap | 0.295 | 0.301 | **27.11** | 27.22 |
+| small cap | 0.677 | 0.68 | **71.46** | 69.85 |
+| cash | 0.03 | 0.019 | **1.64** | 3.11 |
+| portfolio std dev | 0.1446 | 0.1457 | **14.83** | 14.15 |
+| benchmark std dev | 0.133 | 0.2037 | **18.54** | 18.54 |
+
+Same fund, same portfolio, unit corrected by the AMC from April onward.
+
+**Decision: load as filed; correct in the analysis view.**
+
+`core.stress_test` holds what the AMC filed. Correcting at load would leave the database
+disagreeing with the source document, and anyone reconciling against AMFI's file would find an
+unexplained discrepancy. The correction belongs where it is visible — in the SQL of the view,
+with the reasoning in its header.
+
+⚠️ **Scoped to two months and six columns.** A blanket ×100 on Edelweiss would have corrupted
+four of the six months. The scope was established by inspecting all six before deciding, and
+that check is the reason the correction is safe.
+
+**Explicitly NOT corrected:**
+- `portfolio_beta` — 0.78, 0.77, 0.76 across Feb, Mar, Apr. Beta is a ratio around 1, carries no
+  percentage unit, and was correct throughout
+- `days_to_liquidate_50pct` / `_25pct` and `portfolio_trailing_pe` — not percentages, consistent
+  across all six months
+
+⚠️ **This mattered more than it looks.** Uncorrected, Edelweiss's February cash position reads
+**0.03%** rather than **3.0%**. Cash entering the correction is precisely the variable the
+slow-recoverer question would test, and a fund at near-zero cash would have looked like a
+finding rather than a typo.
+
+---
+
+## D41 — Zero standard deviation and beta mean "not reported"; load as NULL (3 Sep 2026)
+
+**Decision.** Convert `0.0` to NULL on load for `portfolio_std_dev_pct`,
+`benchmark_std_dev_pct` and `portfolio_beta` only.
+
+**Why.** A beta of exactly zero is impossible for an equity fund, as is zero volatility. These
+are placeholders for a value the AMC did not report — in several cases because the scheme lacked
+the twelve months of history the metric requires. Baroda BNP Paribas launched October 2023 and
+PGIM's fund is also recent.
+
+Affected in February 2024: Baroda BNP, Mahindra Manulife, Motilal Oswal, PGIM, Quantum.
+
+The existing check constraints already refuse these — `ck_st_beta CHECK (portfolio_beta > 0)`
+and the two standard deviation checks. **The load fails without this conversion**, which is the
+constraint working as intended rather than an obstacle to route around.
+
+⚠️ **Scoped tightly. Zeros in the cap-segment columns are left alone.** DSP and Tata both report
+`large_cap_pct = 0.0` in February, and a small cap fund holding no large caps is entirely
+plausible. Zero is impossible for beta and volatility; it is ordinary for a segment weight.
+
+**NULL rather than a correction**, unlike D40. The value was not reported, so NULL is the honest
+representation. Multiplying by 100 is a reinterpretation of a filed number; nulling a
+placeholder is not.
+
+
+---
+
 ## OPEN / PENDING DECISIONS
 
 - [x] **Is the historical stress test archive retrievable?** → **RESOLVED 17 Aug 2026: YES.**
