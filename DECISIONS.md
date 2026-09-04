@@ -1126,6 +1126,63 @@ month-end position here, but any reuse of this logic should not assume the two a
 
 ---
 
+## D44 — 🔴 The flow decomposition does not reconcile with AMFI's category figure (4 Sep 2026)
+
+**Problem, stated rather than resolved.** Summing the March 2024 flows across the 24 funds gives
+a net of **−₹994 crore**. AMFI reports the small cap category at **−₹94 crore**. The 24 funds are
+24 of the 27 schemes in AMFI's own disclosure, so these should agree closely. They differ by
+roughly ₹900 crore.
+
+**Two candidate explanations, neither verified:**
+
+1. **They measure different quantities.** AMFI compiles category flow from AMC-reported
+   subscriptions and redemptions; this figure is AUM change minus performance. Switch-ins,
+   dividend payouts and segregated portfolios move AUM without registering as category flow.
+
+2. **Direct-plan return bias.** Direct Growth NAV returns are applied to whole-scheme AUM.
+   Regular's higher expense ratio means the true blended return is lower, biasing every flow
+   negative — on the order of ₹200 crore across the universe, or a fifth of the gap.
+
+**Decision: report the limitation, keep the relative findings.** A bias that applies to every
+fund in the same direction does not disturb the ranking — who took money in, who lost it, and by
+how much relative to each other. The absolute crore figures are approximate and should be read
+as such.
+
+⚠️ **Do not close this by dropping ABSL.** Removing its −₹836 crore would bring the net to
+−₹158 crore and appear to reconcile, but ABSL's figure is confirmed from the AMC's own factsheet
+to the paisa. Excluding a verified observation because it is inconvenient would be the wrong
+kind of tidy.
+
+---
+
+## D45 — Factsheet cover months do not match the data they report (4 Sep 2026)
+
+**Rule.** An AMC factsheet labelled for month M may report data as of the **end of month M−1**.
+Verify before using a figure from one.
+
+**How to tell.** The Sharpe ratio note states the risk-free rate used, with its reference date:
+
+| ABSL Empower | MIBOR reference | Data month |
+|---|---|---|
+| February 2024 | 31 January 2024 | January |
+| March 2024 | 29 February 2024 | February |
+| April 2024 | 31 March 2024 | March |
+
+🔴 **This invalidated a verification already recorded as complete.** AMFI's February AUM for
+ABSL was checked against the February factsheet, which reports January. The two agreed within
+0.3% because the fund sat near ₹5,400 crore in both months, and the coincidence was accepted as
+confirmation.
+
+The conclusion happened to survive — the March factsheet reports ₹5,381.88 crore for 29
+February against AMFI's ₹5,382.09, and the April factsheet reports ₹4,444.20 for 31 March
+against AMFI's ₹4,444.20, an exact match. But it survived by luck.
+
+**The general lesson: a coincidental agreement is not a verification.** Two numbers being close
+is only evidence when they are known to describe the same thing. Establish that first.
+
+
+---
+
 ## OPEN / PENDING DECISIONS
 
 - [x] **Is the historical stress test archive retrievable?** → **RESOLVED 17 Aug 2026: YES.**

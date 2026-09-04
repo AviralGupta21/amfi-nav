@@ -2212,10 +2212,32 @@ largest inflows in the universe in every month including the worst one. AUM rose
 **−15.54% of opening AUM in one month.** The next-worst is Sundaram at −1.93% — an eight-fold
 gap. This is far outside the distribution and was investigated in full.
 
-**Verified real, and independently confirmed.** ABSL's own Empower factsheet for February 2024
-reports **Monthly Average AUM ₹5,368.33 crore** and **AUM as on last day ₹5,491.09 crore**
-against AMFI's ₹5,382.09 crore — agreement within 0.3% of the monthly average. The February
-figure is not an error, so the March fall to ₹4,444 crore is not an artefact.
+**Verified real, confirmed against the AMC's own publication — but see the correction below on
+how that verification was done.**
+
+| ABSL Empower factsheet | Reports data as of | AUM as on last day |
+|---|---|---|
+| February 2024 | **31 January 2024** | ₹5,491.09 cr |
+| March 2024 | **29 February 2024** | **₹5,381.88 cr** |
+| April 2024 | **31 March 2024** | **₹4,444.20 cr** |
+
+AMFI's February file says ₹5,382.09 cr and its March file says ₹4,444.20 cr. **Both match ABSL's
+own figures — the March one to the paisa.** Standard deviation, beta and turnover match across
+all three months as well.
+
+⚠️ **ABSL's factsheets are labelled one month ahead of the data they report.** The February
+factsheet computes its Sharpe ratio using FBIL Overnight MIBOR *as on 31 January 2024*; the March
+factsheet uses *29 February*; the April factsheet uses *31 March*. The MIBOR reference date is
+the reliable way to tell which month-end a factsheet describes.
+
+🔴 **An earlier verification of this finding was invalid.** AMFI's February figure was first
+checked against the February factsheet — which reports **January** data. The two happened to
+agree closely because the fund sat near ₹5,400 crore in both months, and the coincidence was
+taken as confirmation. The conclusion survived; the method did not. **Check the MIBOR reference
+date before treating any factsheet figure as belonging to the month on its cover.**
+
+**Monthly Average AUM for March was ₹4,819.78 crore**, well below the ₹5,381.88 opening. The
+money left early in the month, not on the closing day.
 
 **Not a distribution.** All four ABSL plan/option codes — Direct Growth, Regular Growth, Direct
 IDCW, Regular IDCW — fell by the same ~1.9% between 29 Feb and 28 Mar. An IDCW payout would have
@@ -2268,6 +2290,38 @@ single month and is stated rather than adjusted for.
 
 February returns NULL — no prior month to lag from. **Six months of AUM yield five months of
 flows.**
+
+### 🔴 OPEN: the decomposition does not reconcile with AMFI's published category flow
+
+Summing the March column gives **−₹2,155 crore out, +₹1,161 crore in, net −₹994 crore.**
+
+AMFI reports the small cap category at **−₹94 crore** (Business Standard, 19 April 2024, citing
+Elara Capital, describing the first reversal since August 2021 after fifteen months averaging
+around ₹3,300 crore of inflows).
+
+The 24 funds here are essentially the whole category — 24 of the 27 schemes in AMFI's own
+disclosure. **The two figures should agree within a few percent. They differ by roughly ₹900
+crore.**
+
+Removing ABSL's −₹836 crore brings the net to −₹158 crore, close to AMFI's figure. But ABSL's
+number is confirmed from the AMC's own factsheet, so it cannot be dismissed as a data error.
+
+**Candidate explanations, none verified:**
+
+**The two measures are not the same quantity.** AMFI's category net flow is compiled from AMCs
+reporting actual subscriptions and redemptions. The figure here is AUM change minus performance.
+Switch-ins from other schemes of the same fund house, dividend payouts and segregated portfolios
+can all move AUM without registering as category flow.
+
+**Direct-plan return bias.** The NAV return applied is that of the Direct Growth plan, while AUM
+covers all plans. Regular carries a higher expense ratio — ABSL's is 1.85% against 0.71% Direct —
+so the true blended return is lower than the one used, and every flow is biased negative. Across
+roughly ₹247,000 crore of opening AUM at about 0.08% a month, that is on the order of ₹200 crore
+— real, but only a fifth of the gap.
+
+⚠️ **Stated as a limitation rather than resolved.** The relative pattern across funds — who took
+money in and who lost it — is unaffected by a bias that applies to every fund in the same
+direction. The absolute crore figures should be read as approximate.
 
 ---
 
