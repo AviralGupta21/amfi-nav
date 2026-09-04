@@ -940,13 +940,18 @@ number that can be tuned until Tata and SBI look aligned. The honest finding is 
 drawdown nor recovery is explained by restriction status.
 
 **New open question, and a real one: the four slow recoverers.** Axis, Baroda BNP, Union, UTI at
-42–43 days against a 19–28 day field. Depth, restriction status, peak cluster and fund age are
-all checked and rejected. This is the most interesting unexplained structure in the data.
+42–43 days against a 19–28 day field.
 
-Testing it needs data the project does not yet hold — cash position entering the correction,
-portfolio concentration, or holdings overlap. **That is an argument for the stress test harvest**
-(D30), which supplies cash percentage and concentration monthly for exactly these schemes. It is
-now a second reason for that harvest alongside Q1.
+**UPDATE 4 Sep 2026 — tested against the stress test data and closed as unexplained.** Eight
+hypotheses checked: fall depth, restriction status, peak cluster, fund age, cash position,
+investor concentration, small cap exposure and portfolio liquidity. **The slow four sit inside
+the fast group's range on every one.** Cash, the leading candidate, came in at 5.66% against
+5.63% — identical.
+
+The remaining candidate is holdings-level composition, which needs monthly portfolio statements
+rather than the stress test disclosures, and which four observations against twenty could not
+support in any case. See NOTES Part 19. Recorded as tested and unexplained, which is a stronger
+position than an untested open question.
 
 
 ---

@@ -2268,3 +2268,72 @@ single month and is stated rather than adjusted for.
 
 February returns NULL — no prior month to lag from. **Six months of AUM yield five months of
 flows.**
+
+---
+
+## PART 19 — THE SLOW RECOVERERS: EIGHT HYPOTHESES TESTED, NONE EXPLAIN IT (4 Sep 2026)
+
+Axis, Baroda BNP Paribas, Union and UTI took 42–43 days to regain their pre-event highs against
+a field of 19–28, with no fund in between (Part 17). With the stress test data loaded, every
+variable available to the project was tested against that split.
+
+### February 2024 state, slow four vs the other twenty
+
+| Metric | Slow mean | Fast mean | Slow range | Fast range |
+|---|---|---|---|---|
+| Cash % | **5.66** | **5.63** | 3.6 – 10.7 | 0.7 – 11.9 |
+| Small cap % | 78.86 | 74.20 | 67.5 – 86.2 | 65.9 – 93.8 |
+| Mid cap % | 14.20 | 13.10 | 9.6 – 19.6 | 0.2 – 29.5 |
+| Large cap % | 1.25 | 7.09 | 0.0 – 2.8 | 0.0 – 28.4 |
+| Top-10 investor % | 1.94 | 4.12 | 1.2 – 3.0 | 0.6 – 22.0 |
+| Days to liquidate 50% | 8.65 | 16.74 | 1.0 – 28.0 | 1.2 – 60.0 |
+| Turnover | 0.38 | 0.55 | 0.0 – 1.2 | 0.1 – 1.7 |
+| AUM ₹cr | 6,477 | 11,071 | 1,325 – 19,604 | 920 – 46,030 |
+
+**The slow four sit inside the fast group's range on every single metric.**
+
+⚠️ Edelweiss's February figures are corrected ×100 here per D40 before comparison. Left
+uncorrected it would have shown 0.03% cash and appeared to be an extreme outlier on the very
+variable being tested.
+
+### 🔴 Cash was the leading hypothesis and it is dead
+
+**5.66% against 5.63%.** Essentially identical means. A fund entering a correction with little
+cash has to sell into a weak market, which was the plausible mechanism — and it does not
+distinguish these four at all.
+
+### The two apparent differences are artefacts of n=4
+
+Large cap % (1.25 vs 7.09) and turnover (0.38 vs 0.55) look lower for the slow group. Both are
+driven by the group happening to contain several funds reporting 0.0, and both ranges overlap
+the fast group completely. With four observations this is not a signal.
+
+### Eight hypotheses, all rejected
+
+| Hypothesis | Verdict |
+|---|---|
+| Fell further, so had more to recover | **No** — Axis fell −8.58%, 17th of 24 |
+| Restriction status | **No** — three never restricted; Axis had a nominal cap only |
+| Peaked early, so a longer decline | **No** — all four peaked early, and so did twelve of the fast group |
+| Fund age | **No** — launches spanning 2013 to 2023 |
+| Low cash entering the correction | **No** — means identical |
+| Investor concentration | **No** — range fully inside the fast group's |
+| Small cap exposure | **No** — range fully inside |
+| Portfolio liquidity (days to liquidate) | **No** — range fully inside |
+
+### What would be needed, and why it is out of scope
+
+The remaining candidate is **which specific stocks each fund held** — the small caps that lagged
+the April rebound. That requires holdings-level data from monthly portfolio statements, a
+different source class from anything this project uses, at 24 funds × 6 months × 50+ holdings.
+
+⚠️ **And the statistics would not support it anyway.** Four funds against twenty is too few to
+establish a portfolio-composition effect even with the data in hand. Any apparent difference at
+that size deserves suspicion rather than a write-up.
+
+### The finding
+
+**The gap between 28 and 42 days is real and unexplained.** Recorded as tested, not as ignored:
+eight variables checked against it, none of them separate the four funds from the other twenty.
+That is a more useful statement than an untested open question, and it is where this line of
+enquiry correctly stops.
