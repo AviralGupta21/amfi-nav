@@ -1064,6 +1064,63 @@ placeholder is not.
 
 ---
 
+## D42 — 🔴 Q1 is answered: flows are dispersed, and restriction status does not explain them (4 Sep 2026)
+
+**Finding.** The small cap category's ₹94 crore net outflow in March 2024 conceals roughly
+₹2,150 crore leaving 15 funds and ₹1,160 crore entering 9 — about ₹3.3 crore of gross movement
+in each direction per ₹1 of net. See NOTES Part 18.
+
+**The hypothesis recorded in the README since August is confirmed**, and measured across the
+universe rather than inferred from Nippon's two schemes.
+
+⚠️ **The three funds closed to lumpsum behaved completely differently from one another.**
+Nippon lost ₹386 crore, SBI gained ₹224 crore, Tata gained ₹92 crore. Same lumpsum status,
+opposite outcomes — and the ordering tracks the **SIP cap**, not the lumpsum closure. Tata, with
+fresh SIP registrations entirely uncapped, took the largest inflow as a share of AUM.
+
+**This is the third independent measure on which restriction status fails**, after drawdown
+(D37) and recovery (D38). Three measures, three nulls, all consistent with the timing evidence
+in Part 15. The project's central negative finding is now supported from four directions.
+
+⚠️ **The SIP-cap ordering is suggestive and must not be reported as a result.** Three
+observations ranked consistently with a plausible mechanism is a hypothesis, not evidence. Note
+it; do not build on it.
+
+**Two outliers recorded as findings in their own right:**
+
+**quant** took the largest inflow in the universe in every month including March, fully open
+throughout, growing from ₹17,233 crore to ₹24,536 crore across five months.
+
+**ABSL lost 15.54% of AUM in March**, eight times the next-worst fund. Investigated in full and
+verified against the AMC's own factsheet. Broad-based retail withdrawal — top-10 concentration
+barely moved — with cash drawn down and turnover up by a third. **Cause unknown; no news
+coverage exists.** Recorded as a verified outlier, not an explained one.
+
+---
+
+## D43 — Pricing dates are derived from NAV coverage, not from the calendar (4 Sep 2026)
+
+**Decision.** The month-end NAV for each fund is taken on the latest date on which **all 24
+funds published a NAV**, on or before the disclosure month-end — not on the calendar month-end.
+
+**Why.** 31 March and 30 June 2024 both fell on a Sunday, and AMCs did not behave consistently:
+23 of 24 published a NAV on 31 March, but only 3 of 24 on 30 June. Taking each fund's last
+available price would measure ITI's March return to the 28th while everyone else's ran to the
+31st — different windows for the same comparison.
+
+**Two of the six months shift**, both to the 28th. Every fund is then measured identically.
+
+**Derived, not hardcoded.** The six dates could have been written as literals; they would be
+correct for this window and silently wrong for any other. The pattern is not predictable — one
+fund fell back in March, twenty-one in June.
+
+⚠️ **The test finds days on which all 24 funds published, which is not identical to trading
+days.** 1 January 2024 was a market holiday and every fund published a NAV for it. It falls in no
+month-end position here, but any reuse of this logic should not assume the two are the same.
+
+
+---
+
 ## OPEN / PENDING DECISIONS
 
 - [x] **Is the historical stress test archive retrievable?** → **RESOLVED 17 Aug 2026: YES.**

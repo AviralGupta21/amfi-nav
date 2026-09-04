@@ -2114,3 +2114,157 @@ in the specific small caps that lagged the rebound.
 `analysis.recovery_by_fund` depends on `analysis.drawdown_by_fund`, which depends on
 `analysis.fund_state_at_event`. Three levels. Dropping the base view needs CASCADE, and a
 rebuild runs 001, 002, 003 in order.
+
+---
+
+## PART 18 — Q1 ANSWERED: FLOWS VS PERFORMANCE (4 September 2026)
+
+Monthly AUM from AMFI's consolidated stress test disclosures, decomposed against NAV returns to
+separate investor flows from investment performance. March to July 2024, 24 funds, 120
+observations.
+
+    flow = closing AUM - (opening AUM x NAV growth over the month)
+
+### Pricing dates are derived, not assumed
+
+Month-end is not always a day on which all 24 funds published a NAV. **31 March and 30 June 2024
+both fell on a Sunday**, and AMC behaviour differed:
+
+- 31 March: 23 of 24 published anyway; ITI did not
+- 30 June: only 3 of 24 published — Bandhan, Edelweiss and SBI
+
+So the pricing date is the latest date on which **all 24** published, on or before each
+disclosure month. Two of six shift: **March prices at the 28th, June at the 28th.** Every fund is
+then measured over an identical window.
+
+⚠️ The "all 24 published" test finds days every fund priced, which is close to but not the same
+as trading days. **1 January 2024 was a market holiday and all 24 published a NAV for it.** It
+falls in no month-end position here, but the distinction matters if the logic is reused.
+
+### 🔴 The category-level outflow conceals enormous dispersion
+
+The small cap category reported a **₹94 crore net outflow** in March 2024. Across the 24 funds:
+
+- **15 funds with outflows**, totalling roughly **₹2,150 crore**
+- **9 funds with inflows**, totalling roughly **₹1,160 crore**
+
+**About ₹3.3 crore of gross movement in each direction for every ₹1 of net.** The headline figure
+describes almost nothing about what individual fund houses experienced.
+
+This confirms the hypothesis recorded in Part 13 from Nippon's two schemes alone, now measured
+across the universe.
+
+### March 2024 flows, as % of opening AUM
+
+| Fund | Flow ₹cr | % opening | | Fund | Flow ₹cr | % opening |
+|---|---|---|---|---|---|---|
+| **absl** | **−836** | **−15.54%** | | canara | +5 | +0.05% |
+| sundaram | −58 | −1.93% | | union | +9 | +0.64% |
+| pgim | −27 | −1.89% | | edelweiss | +23 | +0.74% |
+| kotak | −183 | −1.29% | | **sbi** | **+224** | **+0.88%** |
+| hdfc | −329 | −1.15% | | mahindra | +43 | +1.21% |
+| uti | −33 | −0.91% | | **tata** | **+92** | **+1.47%** |
+| icici | −63 | −0.85% | | boi | +19 | +2.09% |
+| barodabnp | −11 | −0.85% | | bandhan | +94 | +2.15% |
+| **nippon** | **−386** | **−0.84%** | | **quant** | **+653** | **+3.79%** |
+| dsp | −82 | −0.60% | | | | |
+| invesco | −16 | −0.44% | | | | |
+| iti | −7 | −0.38% | | | | |
+| franklin | −43 | −0.36% | | | | |
+| axis | −56 | −0.28% | | | | |
+| hsbc | −25 | −0.18% | | | | |
+
+### 🔴 The three restricted funds diverge sharply from each other
+
+| | Lumpsum | Fresh SIP cap | March flow |
+|---|---|---|---|
+| **Nippon** | suspended | ₹5 lakh/day | **−₹386 cr (−0.84%)** |
+| **SBI** | suspended | ₹25,000/month | **+₹224 cr (+0.88%)** |
+| **Tata** | suspended | **uncapped** | **+₹92 cr (+1.47%)** |
+
+All three were closed to lumpsum. One bled, two took money in — and the ranking tracks the SIP
+cap rather than the lumpsum status. Tata, with new SIP registrations entirely uncapped, took the
+largest inflow as a share of AUM.
+
+**If closing the door to lumpsum mattered, these three should look alike. They do not.**
+This is the third measure — after drawdown and recovery — on which restriction status fails to
+explain the outcome.
+
+⚠️ Nippon's −₹386 crore is roughly four times the entire category's net outflow, consistent with
+the scheme-level finding in Part 13.
+
+### 🔴 quant took money in throughout the correction
+
+| Month | Flow | % opening |
+|---|---|---|
+| March | +₹653 cr | +3.79% |
+| April | +₹1,085 cr | +6.24% |
+| May | +₹1,166 cr | +5.77% |
+| June | +₹338 cr | +1.59% |
+| July | +₹676 cr | +2.95% |
+
+The fastest-growing small cap fund in the country, fully open to lumpsum throughout, took the
+largest inflows in the universe in every month including the worst one. AUM rose from
+₹17,233 crore in February to ₹24,536 crore in July.
+
+### 🔴 ABSL: a −₹836 crore retail outflow with no visible cause
+
+**−15.54% of opening AUM in one month.** The next-worst is Sundaram at −1.93% — an eight-fold
+gap. This is far outside the distribution and was investigated in full.
+
+**Verified real, and independently confirmed.** ABSL's own Empower factsheet for February 2024
+reports **Monthly Average AUM ₹5,368.33 crore** and **AUM as on last day ₹5,491.09 crore**
+against AMFI's ₹5,382.09 crore — agreement within 0.3% of the monthly average. The February
+figure is not an error, so the March fall to ₹4,444 crore is not an artefact.
+
+**Not a distribution.** All four ABSL plan/option codes — Direct Growth, Regular Growth, Direct
+IDCW, Regular IDCW — fell by the same ~1.9% between 29 Feb and 28 Mar. An IDCW payout would have
+moved the IDCW NAVs separately.
+
+**The NAV series is clean.** Continuous daily values, trough 76.82 on 13 March, recovery to
+81.09 by the 28th. No gaps, no stale carry-forwards.
+
+**Corroborated by the fund's own stress test data:**
+
+| | Feb | Mar | Apr |
+|---|---|---|---|
+| AUM ₹cr | 5,382 | 4,444 | 4,761 |
+| cash % | 3.90 | 3.29 | **1.41** |
+| turnover | 0.42 | **0.58** | 0.57 |
+
+Cash drawn down and turnover up by a third — what a fund selling to meet redemptions looks like.
+
+🔴 **But top-10 investor concentration barely moved: 2.52% → 2.03%.** A single large
+redemption would have collapsed it. **This was broad-based withdrawal across many small holders**
+— ₹836 crore leaving without changing the fund's ownership shape.
+
+**And it was scheme-specific, not house-wide.** ABSL AMC's Q4 FY24 results report monthly
+systematic inflows up 25% year-on-year to ₹1,252 crore for March 2024, equity QAAUM up 31%
+year-on-year, and ~596,400 new SIPs registered in the quarter. The fund house was growing
+strongly while this one scheme lost 15%.
+
+⚠️ **No news coverage of it exists.** Searched and found nothing. Cause unknown; mechanism
+identified. Record as a verified outlier, not as an explained one.
+
+### ⚠️ Do not mix factsheet and stress test metrics
+
+The same fund reports different values in the two sources for the same month:
+
+| | AMFI stress test | ABSL factsheet |
+|---|---|---|
+| Portfolio turnover | 0.42 | 0.39 |
+| Standard deviation | 15.02% | 16.51% |
+
+The factsheet computes standard deviation on 3 years of monthly returns; the stress test uses a
+different basis. Both are correct on their own terms. **Comparing across the two sources is not
+valid** — use one throughout.
+
+### Method limitation
+
+Money arriving mid-month does not experience the whole month's return, so a fund taking heavy
+inflows during a rising month has its flow slightly understated, and the reverse in a falling
+month. Correcting this needs daily flow data, which is not published. The bias is small over a
+single month and is stated rather than adjusted for.
+
+February returns NULL — no prior month to lag from. **Six months of AUM yield five months of
+flows.**

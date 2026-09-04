@@ -3,9 +3,9 @@
 A PostgreSQL pipeline over Indian mutual fund data, built to study how asset management
 companies responded to SEBI's small-cap liquidity intervention of February–March 2024.
 
-> **Status: analysis in progress.** The regulatory dataset is complete and primary-sourced
-> across all 24 fund houses in scope. The drawdown and recovery analyses are complete; flow
-> decomposition is underway. Findings below are marked verified or hypothesised.
+> **Status: analysis complete.** The regulatory dataset is primary-sourced across all 24 fund
+> houses in scope, and the drawdown, recovery and flow analyses are all finished. Findings below
+> are marked verified or hypothesised.
 
 ---
 
@@ -193,12 +193,25 @@ the regulatory communication, while nine were still making highs as late as 27 F
 day of the communication itself. The shallowest falls cluster among the late peakers. This
 points at portfolio composition rather than subscription policy. *Not yet tested.*
 
-**🔬 Hypothesis — the category-level outflow masks large dispersion between fund houses.**
-The small-cap category recorded a ₹94 crore net outflow in March 2024. Nippon's two disclosed
-schemes moved in opposite directions over the same month, with the restricted small-cap scheme
-showing a far larger outflow than the entire category's net figure. If individual fund houses
-took inflows while the category bled, the headline number conceals the more interesting story.
-*Being tested across the full universe.*
+**✅ Verified — the category-level outflow conceals enormous dispersion between fund houses.**
+The small-cap category recorded a ₹94 crore net outflow in March 2024. Across the 24 funds,
+roughly ₹2,150 crore left fifteen of them while ₹1,160 crore entered the other nine — about
+₹3.30 of gross movement in each direction for every ₹1 of net. The headline figure describes
+almost nothing about what individual fund houses experienced.
+
+**✅ Verified — investor flows do not track restriction status either.**
+The three funds closed to lumpsum entering the correction behaved in opposite directions during
+it: Nippon lost ₹386 crore, while SBI took in ₹224 crore and Tata ₹92 crore. Meanwhile quant —
+fully open, and the fastest-growing small-cap fund in the country — took the largest inflow in
+the universe in every month including the worst one. This is the third independent measure,
+after drawdown and recovery, on which restriction status fails to explain the outcome.
+
+**✅ Verified — one fund lost 15% of its assets in a month, for no discoverable reason.**
+Aditya Birla Sun Life Small Cap Fund saw ₹836 crore leave in March 2024, eight times the
+next-largest percentage outflow in the universe. The figure is confirmed against the AMC's own
+factsheet, it was not a dividend distribution, and the fund house was growing strongly at the
+same time. Top-ten investor concentration barely moved, so it was broad-based retail withdrawal
+rather than one large redemption. No news coverage of it exists.
 
 ---
 
