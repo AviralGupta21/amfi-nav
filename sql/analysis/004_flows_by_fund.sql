@@ -50,62 +50,63 @@ FEBRUARY HAS NO FLOW
     February returns NULL. Six months of AUM yield five months of flows.
 */
 
-WITH full_days AS (
-    SELECT n.nav_date
-    FROM core.nav n
-    JOIN core.study_universe u ON n.scheme_code = u.scheme_code
-    WHERE n.nav_date >= '2024-01-01'
-      AND n.nav_date <= '2024-07-31'
-    GROUP BY n.nav_date
-    HAVING COUNT(*) = 24
-),
+CREATE VIEW analysis.flows_by_fund AS
+    WITH full_days AS (
+        SELECT n.nav_date
+        FROM core.nav n
+        JOIN core.study_universe u ON n.scheme_code = u.scheme_code
+        WHERE n.nav_date >= '2024-01-01'
+        AND n.nav_date <= '2024-07-31'
+        GROUP BY n.nav_date
+        HAVING COUNT(*) = 24
+    ),
 
-month_end AS (
-    SELECT DISTINCT ON (s.as_of_date)
-        s.as_of_date,
-        f.nav_date AS pricing_date
-    FROM (SELECT DISTINCT as_of_date FROM core.stress_test) s
-    JOIN full_days f ON f.nav_date <= s.as_of_date
-    ORDER BY s.as_of_date, f.nav_date DESC
-),
+    month_end AS (
+        SELECT DISTINCT ON (s.as_of_date)
+            s.as_of_date,
+            f.nav_date AS pricing_date
+        FROM (SELECT DISTINCT as_of_date FROM core.stress_test) s
+        JOIN full_days f ON f.nav_date <= s.as_of_date
+        ORDER BY s.as_of_date, f.nav_date DESC
+    ),
 
-priced AS (
+    priced AS (
+        SELECT
+            st.amc_code,
+            st.as_of_date,
+            m.pricing_date,
+            st.aum_cr,
+            n.nav_value
+        FROM core.stress_test st
+        JOIN month_end m ON st.as_of_date = m.as_of_date
+        JOIN core.study_universe u ON st.amc_code = u.amc
+        JOIN core.nav n ON n.scheme_code = u.scheme_code
+                    AND n.nav_date = m.pricing_date
+    ),
+
+    lagged AS (
+        SELECT
+            p.amc_code,
+            p.as_of_date,
+            p.pricing_date,
+            p.aum_cr,
+            p.nav_value,
+            LAG(p.aum_cr)    OVER (PARTITION BY p.amc_code ORDER BY p.as_of_date) AS prev_aum_cr,
+            LAG(p.nav_value) OVER (PARTITION BY p.amc_code ORDER BY p.as_of_date) AS prev_nav_value
+        FROM priced p
+    )
+
     SELECT
-        st.amc_code,
-        st.as_of_date,
-        m.pricing_date,
-        st.aum_cr,
-        n.nav_value
-    FROM core.stress_test st
-    JOIN month_end m ON st.as_of_date = m.as_of_date
-    JOIN core.study_universe u ON st.amc_code = u.amc
-    JOIN core.nav n ON n.scheme_code = u.scheme_code
-                   AND n.nav_date = m.pricing_date
-),
-
-lagged AS (
-    SELECT
-        p.amc_code,
-        p.as_of_date,
-        p.pricing_date,
-        p.aum_cr,
-        p.nav_value,
-        LAG(p.aum_cr)    OVER (PARTITION BY p.amc_code ORDER BY p.as_of_date) AS prev_aum_cr,
-        LAG(p.nav_value) OVER (PARTITION BY p.amc_code ORDER BY p.as_of_date) AS prev_nav_value
-    FROM priced p
-)
-
-SELECT
-    l.amc_code,
-    f.lumpsum_status,
-    l.as_of_date,
-    l.prev_aum_cr,
-    l.aum_cr,
-    ROUND(((l.nav_value / l.prev_nav_value - 1) * 100)::numeric, 2) AS nav_return_pct,
-    ROUND((l.aum_cr - l.prev_aum_cr * (l.nav_value / l.prev_nav_value))::numeric, 2) AS flow_cr,
-    ROUND((100.0 * (l.aum_cr - l.prev_aum_cr * (l.nav_value / l.prev_nav_value))
-           / l.prev_aum_cr)::numeric, 2) AS flow_pct_of_opening
-FROM lagged l
-JOIN analysis.fund_state_at_event f ON l.amc_code = f.amc
-WHERE l.prev_aum_cr IS NOT NULL
-ORDER BY l.as_of_date, flow_cr;
+        l.amc_code,
+        f.lumpsum_status,
+        l.as_of_date,
+        l.prev_aum_cr,
+        l.aum_cr,
+        ROUND(((l.nav_value / l.prev_nav_value - 1) * 100)::numeric, 2) AS nav_return_pct,
+        ROUND((l.aum_cr - l.prev_aum_cr * (l.nav_value / l.prev_nav_value))::numeric, 2) AS flow_cr,
+        ROUND((100.0 * (l.aum_cr - l.prev_aum_cr * (l.nav_value / l.prev_nav_value))
+            / l.prev_aum_cr)::numeric, 2) AS flow_pct_of_opening
+    FROM lagged l
+    JOIN analysis.fund_state_at_event f ON l.amc_code = f.amc
+    WHERE l.prev_aum_cr IS NOT NULL
+    ORDER BY l.as_of_date, flow_cr;
