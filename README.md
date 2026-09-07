@@ -4,8 +4,9 @@ A PostgreSQL pipeline over Indian mutual fund data, built to study how asset man
 companies responded to SEBI's small-cap liquidity intervention of February–March 2024.
 
 > **Status: analysis complete.** The regulatory dataset is primary-sourced across all 24 fund
-> houses in scope, and the drawdown, recovery and flow analyses are all finished. Findings below
-> are marked verified or hypothesised.
+> houses in scope. All three analysis questions — flows, drawdown and recovery — are answered.
+> A Power BI report sits on top of the same data as a presentation layer. Findings below are
+> marked verified, tested-and-unexplained, or hypothesised.
 
 ---
 
@@ -119,6 +120,8 @@ notice: lumpsum would resume when, in its assessment, valuations became attracti
 
 ## Findings
 
+### On the regulatory response
+
 **✅ Verified — the intervention produced almost no new restrictions.**
 Of 24 fund houses, four changed their small-cap subscription terms in the month following the
 SEBI communication. Two of those four were already restricted and merely tightened. **Three
@@ -148,13 +151,12 @@ systematic-plan restrictions in May 2020 mid-COVID and reimposed them that Septe
 recovered. DSP, closed since 2017, fully reopened on 1 April 2020. Axis cut its cap 40× in March
 2020 and restored it three weeks later.
 
-**✅ Verified — liquidity evaporates exactly when it is needed.**
-Nippon India Small Cap Fund's AUM *fell* 1.7% during March 2024, yet the time required to
-liquidate half its portfolio *rose* from 27 to 29 days. A smaller portfolio should be easier to
-sell; it became harder because the metric depends on market trading volumes as well as fund
-size, and volumes contracted during the correction. By June, with AUM 23% higher than February,
-the figure had fallen back to 26 days. **The stress test measures market conditions at least as
-much as it measures the fund.**
+**✅ Verified — the parameters look coordinated rather than independently chosen.**
+Several fund houses adopted identical caps, identical breach-handling language and identical
+carve-outs within weeks of each other, which points at a shared industry template. This is
+stated as a limitation on the independence assumption rather than assumed away.
+
+### On price behaviour
 
 **✅ Verified — every fund bottomed on the same day, and restriction status did not change how
 far it fell.**
@@ -169,9 +171,7 @@ effect on or after the market had bottomed.
 **✅ Verified — the correction was fully retraced, and recovery split the universe in two.**
 All 24 funds regained their pre-event high. Twenty did so in 19 to 28 days, most within three
 weeks of the trough. **Four took 42 to 43 days — Axis, Baroda BNP Paribas, Union and UTI — with
-no fund falling anywhere between 28 and 42.** The gap is clean, and nothing in the regulatory or
-price data explains it: not how far they fell, not restriction status, not when they peaked, not
-fund age.
+no fund falling anywhere between 28 and 42.**
 
 **✅ Verified — recovery speed is not explained by restriction status either.**
 SBI recovered second fastest of 24, at 19 days. But it also fell least, and sits exactly where
@@ -180,18 +180,25 @@ account for. Depth itself explains only about a fifth of the variation in recove
 (r = −0.45), so most of what separates a three-week recovery from a six-week one lies outside
 both the price data and the regulatory record.
 
-**✅ Verified — a fund's identity is stable in its code and unstable in its name.**
-Nippon India's mid-cap fund appears in the regulatory disclosure as "Nippon India Growth Fund",
-in the NAV archive as "Nippon India Growth Mid Cap Fund", and in its pre-2019 form as "Reliance
-Growth Fund" — with nine distinct codes across plan and option variants, in three separator
-conventions and two casings. Six fund houses in the study universe renamed or merged during the
-study period. Matching by name fails silently; matching by code does not.
+**🔍 Tested and unexplained — what separates the four slow recoverers.**
+Eight hypotheses were tested against the 42–43 day group and all eight were rejected: how far
+the fund fell, restriction status, peak date, fund age, cash held entering the correction,
+investor concentration, small-cap exposure, and portfolio liquidity. **On every stress-test
+metric the four sit entirely inside the range of the other twenty.** Cash was the leading
+candidate and is the clearest rejection — 5.66% mean for the slow group against 5.63% for the
+fast. The remaining candidate is holdings-level composition, which needs monthly portfolio
+statements, a source class this project does not use; and four funds against twenty could not
+support a composition finding even with that data in hand. **Recorded as tested, not ignored.**
 
 **🔬 Hypothesis — when a fund peaked may matter more than whether it was restricted.**
 Peaks were not synchronised: fifteen funds topped out on 6–7 February 2024, three weeks before
-the regulatory communication, while nine were still making highs as late as 27 February — the
-day of the communication itself. The shallowest falls cluster among the late peakers. This
-points at portfolio composition rather than subscription policy. *Not yet tested.*
+the regulatory communication, while nine were still making highs as late as 27 February. Of the
+six shallowest falls, four peaked on 26–27 February; of the ten deepest, seven peaked on 6–7
+February. Counterintuitively, funds that peaked later had less time to fall *and* fell less,
+which points at portfolio composition rather than subscription policy. Peak date was separately
+tested against *recovery speed* and rejected. *Against drawdown depth it remains untested.*
+
+### On flows
 
 **✅ Verified — the category-level outflow conceals enormous dispersion between fund houses.**
 The small-cap category recorded a ₹94 crore net outflow in March 2024. Across the 24 funds,
@@ -201,17 +208,62 @@ almost nothing about what individual fund houses experienced.
 
 **✅ Verified — investor flows do not track restriction status either.**
 The three funds closed to lumpsum entering the correction behaved in opposite directions during
-it: Nippon lost ₹386 crore, while SBI took in ₹224 crore and Tata ₹92 crore. Meanwhile quant —
-fully open, and the fastest-growing small-cap fund in the country — took the largest inflow in
-the universe in every month including the worst one. This is the third independent measure,
-after drawdown and recovery, on which restriction status fails to explain the outcome.
+it: Nippon lost ₹386 crore (−0.84% of opening AUM), while SBI took in ₹224 crore (+0.88%) and
+Tata ₹92 crore (+1.47%). If closing the door to lumpsum mattered, these three should look alike.
+They do not — and the ranking tracks the *systematic-plan* cap rather than the lumpsum status,
+with Tata, alone in leaving new SIP registrations uncapped, taking the largest inflow as a share
+of AUM. This is the third independent measure, after drawdown and recovery, on which restriction
+status fails to explain the outcome.
+
+**✅ Verified — the fastest-growing fund in the category took money in throughout.**
+quant Small Cap Fund, fully open to lumpsum throughout, recorded the largest inflow in the
+universe in every month from March to July 2024, including the worst one (+₹653 crore in March,
++3.79% of opening AUM). Its AUM rose from ₹17,233 crore in February to ₹24,536 crore in July.
 
 **✅ Verified — one fund lost 15% of its assets in a month, for no discoverable reason.**
-Aditya Birla Sun Life Small Cap Fund saw ₹836 crore leave in March 2024, eight times the
-next-largest percentage outflow in the universe. The figure is confirmed against the AMC's own
-factsheet, it was not a dividend distribution, and the fund house was growing strongly at the
-same time. Top-ten investor concentration barely moved, so it was broad-based retail withdrawal
-rather than one large redemption. No news coverage of it exists.
+Aditya Birla Sun Life Small Cap Fund saw ₹836 crore leave in March 2024 — −15.54% of opening
+AUM, against −1.93% for the next-worst fund, an eight-fold gap. The figure is confirmed against
+the AMC's own factsheet to the paisa, it was not a dividend distribution, and the fund house was
+growing strongly at the same time. Top-ten investor concentration barely moved, so it was
+broad-based retail withdrawal rather than one large redemption. No news coverage of it exists.
+
+### On the data itself
+
+**✅ Verified — liquidity evaporates exactly when it is needed.**
+Nippon India Small Cap Fund's AUM *fell* 1.7% during March 2024, yet the time required to
+liquidate half its portfolio *rose* from 27 to 29 days. A smaller portfolio should be easier to
+sell; it became harder because the metric depends on market trading volumes as well as fund
+size, and volumes contracted during the correction. By June, with AUM 23% higher than February,
+the figure had fallen back to 26 days. **The stress test measures market conditions at least as
+much as it measures the fund.**
+
+**✅ Verified — a fund's identity is stable in its code and unstable in its name.**
+Nippon India's mid-cap fund appears in the regulatory disclosure as "Nippon India Growth Fund",
+in the NAV archive as "Nippon India Growth Mid Cap Fund", and in its pre-2019 form as "Reliance
+Growth Fund" — with nine distinct codes across plan and option variants, in three separator
+conventions and two casings. Six fund houses in the study universe renamed or merged during the
+study period. Matching by name fails silently; matching by code does not.
+
+---
+
+## The dashboard
+
+A Power BI report sits over the same data as a presentation layer, built on a star schema: five
+fact tables (drawdown, recovery, flows, stress test, NAV) joining a single `fund_state`
+dimension on the fund key, single-direction cross-filtering throughout.
+
+Four visuals, one per finding:
+
+| # | Visual | Shows |
+|---|---|---|
+| 1 | NAV series with restriction effective dates marked | Three of four restrictions landing on or after the 13 March trough |
+| 2 | Peak-to-trough fall by fund, coloured by lumpsum status | Restricted funds scattered through the range, not clustered |
+| 3 | Days to recover | The 19–28 day cluster, the four at 42–43, and the clean gap |
+| 4 | March 2024 flows by fund | The dispersion the category's −₹94 crore net figure conceals |
+
+One modelling note worth recording: the restriction table covers only 9 of 24 fund houses, so
+any visual built directly on it silently shows nine funds. All four are built from the
+`fund_state` dimension instead, which carries every fund whether or not it was ever restricted.
 
 ---
 
@@ -219,8 +271,8 @@ rather than one large redemption. No news coverage of it exists.
 
 | Source | What it provides | Coverage |
 |---|---|---|
-| AMFI daily NAV history | Daily NAV per scheme | 36.7M rows, 38,107 scheme codes, Apr 2006 – present |
-| AMC stress test disclosures | Liquidation days, cash %, cap-segment split, investor concentration, beta, PE, turnover — and **monthly scheme-level AUM** | Feb 2024 onward, mid & small cap schemes only |
+| AMFI daily NAV history | Daily NAV per scheme | 36.7M rows available, 8.93M loaded, 38,107 scheme codes |
+| AMFI consolidated stress test disclosures | Liquidation days, cash %, cap-segment split, investor concentration, beta, PE, turnover — and **monthly scheme-level AUM** | Feb 2024 onward, mid & small cap schemes only |
 | AMC notice-cum-addenda | Restriction type, effective date, severity, reversal date | Compiled from primary filings across all 24 fund houses |
 
 All sources are public regulatory disclosures. No paid or licensed data is used.
@@ -243,6 +295,28 @@ least one restriction and the claim that a widely covered fund house had "first 
 restrictions in July 2023" when its own filings show an earlier episode. Where the two conflict,
 the filing governs.
 
+**One correction worth stating plainly:** one fund house filed its February and March 2024 stress
+test figures as fractions rather than percentages, off by a factor of 100. Left uncorrected it
+would have appeared as an extreme outlier on cash — the exact variable used to test the recovery
+hypothesis. It is corrected in the analysis view rather than at load, so the loaded data still
+matches the published file. A blanket ×100 across all six months would have corrupted four of
+them; the correction is scoped to the two months that need it.
+
+---
+
+## Technical implementation
+
+- **PostgreSQL 18** — four schemas (`core`, `staging`, `analysis`, `public`), typed columns and
+  declared constraints rather than defaults, `(scheme_code, nav_date)` as the natural composite
+  primary key, indexes benchmarked against the actual query pattern rather than added by habit.
+- **8.93M NAV rows** loaded from January 2022, giving roughly 26 months of pre-event baseline.
+- **Four analysis views** — `fund_state_at_event`, `drawdown_by_fund`, `recovery_by_fund`,
+  `flows_by_fund` — each answering one question and each defensible line by line.
+- **Flow decomposition**: monthly AUM change split into performance and investor flow using
+  daily NAV returns, with pricing dates derived from actual NAV coverage rather than assumed
+  from the calendar.
+- **Power BI** star schema over CSV extracts of the analysis views.
+
 ---
 
 ## Repository structure
@@ -252,6 +326,7 @@ sql/schema/     table, index and constraint definitions
 sql/load/       seed data and bulk-load steps
 sql/analysis/   the views and queries behind the findings above
 scripts/        data acquisition and orchestration
+powerbi/        the .pbix report
 ```
 
 The regulatory dataset lives in the database rather than in flat files: `core.study_universe`
@@ -269,7 +344,16 @@ Raw NAV data is not committed — the repository holds the code that builds the 
 database itself. Third-party PDFs are not redistributed; each restriction row identifies its
 source filing by fund house, date and addendum reference.
 
-*Setup instructions to follow once the ingestion layer is complete.*
+1. Create an empty database and run `sql/schema/000_schemas.sql`, which creates the schemas and
+   sets the search path.
+2. Run the remaining files in `sql/schema/` and `sql/load/` in numbered order.
+3. Acquire the NAV history and stress test files using the scripts in `scripts/`, then run the
+   bulk-load steps.
+4. Run `sql/analysis/` in numbered order to build the views.
+
+The Power BI report reads CSV extracts of the analysis views. The `\copy` commands that produce
+them are in the load directory; the extracts themselves are not committed, since the raw data
+directory is ignored.
 
 ---
 
@@ -287,6 +371,12 @@ otherwise would define the control group partly by website quality.
 group effect on the drawdowns, and the analysis says so rather than implying a test was run that
 could have failed. The drawdown result is reported as a negative finding, supported by the
 timing evidence.
+
+**The flow decomposition does not reconcile with AMFI's published category figure.** The
+per-fund flows sum to roughly −₹994 crore against −₹94 crore reported for the category. Two
+candidate explanations have been sized — differences in what the two figures count, and the
+universe boundary — but neither is verified, so the decomposition is reported as internally
+consistent and externally unreconciled rather than presented as matching a published total.
 
 **Two schemes cannot support a before-and-after comparison.** Baroda BNP Paribas Small Cap Fund
 launched on 30 October 2023, four months before the event, and Mahindra Manulife's in December
@@ -311,9 +401,15 @@ stress test disclosures supply monthly AUM, but only for mid and small cap schem
 February 2024. Where a question cannot be answered within those limits, it is documented as a
 limitation rather than estimated around.
 
-**NAV history is loaded from January 2022 onward**, giving roughly 26 months of pre-event
-baseline. The archive extends to 2006; the earlier depth is not loaded because the event study
-does not reach it. All 38,107 scheme codes are present in the loaded window, but scheme names
-are parsed into a clean plan and option hierarchy only for the schemes the analysis touches. The remainder are
-largely closed-ended fixed maturity plans that matured years before the event studied here. This
-is a scope decision, not an omission.
+**The peak-search window is a judgement.** Peaks are searched to 29 February 2024. An earlier
+attempt running to 30 April returned 30 April as the peak for 23 of 24 funds, because every fund
+had by then recovered past its pre-event high — itself a finding about how completely the
+correction was retraced. The bound is stated rather than hidden; the latest genuine peak is
+27 February, so no fund is clipped by it.
+
+**NAV history is loaded from January 2022 onward.** The archive extends to 2006; the earlier
+depth is not loaded because the event study does not reach it. All 38,107 scheme codes are
+present in the loaded window, but scheme names are parsed into a clean plan and option hierarchy
+only for the schemes the analysis touches. The remainder are largely closed-ended fixed maturity
+plans that matured years before the event studied here. This is a scope decision, not an
+omission.
