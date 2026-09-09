@@ -261,6 +261,14 @@ Four visuals, one per finding:
 | 3 | Days to recover | The 19–28 day cluster, the four at 42–43, and the clean gap |
 | 4 | March 2024 flows by fund | The dispersion the category's −₹94 crore net figure conceals |
 
+![Restriction dates against the NAV path](powerbi/screenshots/01-timeline.png)
+
+![Peak-to-trough fall by fund](powerbi/screenshots/02-drawdown-by-fund.png)
+
+![Days to recover](powerbi/screenshots/03-recovery-days.png)
+
+![March 2024 flows](powerbi/screenshots/04-march-flows.png)
+
 One modelling note worth recording: the restriction table covers only 9 of 24 fund houses, so
 any visual built directly on it silently shows nine funds. All four are built from the
 `fund_state` dimension instead, which carries every fund whether or not it was ever restricted.
@@ -344,7 +352,7 @@ Raw NAV data is not committed — the repository holds the code that builds the 
 database itself. Third-party PDFs are not redistributed; each restriction row identifies its
 source filing by fund house, date and addendum reference.
 
-1. Create an empty database and run `sql/schema/000_schemas.sql`, which creates the schemas and
+1. Create an empty database and run `sql/schema/001_schemas.sql`, which creates the schemas and
    sets the search path.
 2. Run the remaining files in `sql/schema/` and `sql/load/` in numbered order.
 3. Acquire the NAV history and stress test files using the scripts in `scripts/`, then run the
