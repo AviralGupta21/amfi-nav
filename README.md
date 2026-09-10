@@ -1,4 +1,4 @@
-# amfi-nav
+# SEBI-Small-Cap-Restriction-Event-Study
 
 A PostgreSQL pipeline over Indian mutual fund data, built to study how asset management
 companies responded to SEBI's small-cap liquidity intervention of February–March 2024.
